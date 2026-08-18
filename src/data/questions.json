@@ -1,0 +1,847 @@
+[
+  {
+    "id": 1,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Fácil",
+    "question": "Quieres registrar tu peso corporal todas las mañanas al despertarte (medición individual una vez al día). ¿Qué gráfico de control SPC deberías utilizar?",
+    "options": [
+      "Gráfico de Individuales y Rango Móvil (I-MR)",
+      "Gráfico X̄-R (Medias y Rangos)",
+      "Gráfico P (Proporción de defectuosos)",
+      "Gráfico C (Cantidad de defectos)"
+    ],
+    "answer": 0,
+    "explanation": "Para mediciones individuales tomadas una a una (tamaño de subgrupo n=1), el gráfico I-MR es el adecuado. El gráfico de Individuales (I) sigue los valores directos y el Rango Móvil (MR) calcula la diferencia entre mediciones consecutivas."
+  },
+  {
+    "id": 2,
+    "mode": "spc-match",
+    "category": "Manufactura general",
+    "difficulty": "Fácil",
+    "question": "En una planta embotelladora, se mide el volumen de llenado en subgrupos de 5 botellas cada hora. ¿Qué gráfico es más adecuado para controlar el promedio del volumen y la variación del proceso?",
+    "options": [
+      "Gráfico I-MR",
+      "Gráfico X̄-R",
+      "Gráfico P",
+      "Gráfico U"
+    ],
+    "answer": 1,
+    "explanation": "Para datos continuos (volumen) en subgrupos pequeños (n=5, típicamente menor a 10), el gráfico X̄-R (Promedios y Rangos) es el estándar de la industria para controlar la media y la dispersión."
+  },
+  {
+    "id": 3,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Fácil",
+    "question": "Estás inspeccionando tarjetas de circuito impreso (PCBs). Cuentas el número de juntas de soldadura defectuosas en lotes de tamaño variable. ¿Qué gráfico debes elegir?",
+    "options": [
+      "Gráfico NP",
+      "Gráfico X̄-S",
+      "Gráfico P",
+      "Gráfico C"
+    ],
+    "answer": 2,
+    "explanation": "El gráfico P rastrea la proporción (o porcentaje) de unidades defectuosas en subgrupos de tamaño variable. Como el tamaño del lote cambia, la tasa de defectos (P) es la métrica adecuada."
+  },
+  {
+    "id": 4,
+    "mode": "spc-match",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Fácil",
+    "question": "Se mide la fuerza máxima de inserción a presión (press-fit) de un pin conector específico de manera individual para cada tarjeta. ¿Qué gráfico SPC se debe usar?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico I-MR",
+      "Gráfico C",
+      "Gráfico U"
+    ],
+    "answer": 1,
+    "explanation": "Cada tarjeta da una única lectura de fuerza máxima de inserción para ese pin. Al ser mediciones individuales (subgrupo = 1), se emplea el gráfico de Individuales y Rango Móvil (I-MR)."
+  },
+  {
+    "id": 5,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Fácil",
+    "question": "Un inspector cuenta el número total de rayones en la superficie de paneles de refrigeradores. Cada panel tiene la misma área de superficie (área de oportunidad constante). ¿Qué gráfico de atributos es el correcto?",
+    "options": [
+      "Gráfico C",
+      "Gráfico P",
+      "Gráfico U",
+      "Gráfico X̄-R"
+    ],
+    "answer": 0,
+    "explanation": "El gráfico C se utiliza para contar el número total de defectos (rayones) en una unidad de inspección constante (un panel con área fija)."
+  },
+  {
+    "id": 6,
+    "mode": "chart-detective",
+    "category": "Manufactura general",
+    "difficulty": "Fácil",
+    "question": "Analiza este gráfico de control. ¿Qué regla de control se ha violado de forma más evidente en el punto destacado en rojo?",
+    "options": [
+      "Un punto fuera de los límites de control (más allá de 3 sigmas)",
+      "Tendencia continua de 6 puntos consecutivos subiendo",
+      "Desplazamiento de 9 puntos consecutivos de un mismo lado de la línea central",
+      "Comportamiento cíclico alternante"
+    ],
+    "answer": 0,
+    "explanation": "El punto marcado supera el Límite de Control Superior (UCL), lo que representa una violación directa de la Regla 1 de Western Electric: un punto fuera de 3 desviaciones estándar.",
+    "chartData": {
+      "type": "Xbar-R",
+      "violationType": "out-of-bounds",
+      "violationPoint": 11,
+      "pointsCount": 15,
+      "cl": 10.0,
+      "ucl": 13.0,
+      "lcl": 7.0,
+      "label": "Diámetro (mm)"
+    }
+  },
+  {
+    "id": 7,
+    "mode": "problem-solver",
+    "category": "Vida cotidiana",
+    "difficulty": "Fácil",
+    "question": "Quieres evaluar si tu consumo diario de agua (en litros) está bajo control estadístico. ¿Cuál es el primer paso metodológico antes de calcular los límites de control definitivos?",
+    "options": [
+      "Recopilar al menos 20-25 puntos de datos históricos en condiciones estables",
+      "Establecer límites de control teóricos basados en las pautas de salud de 2 litros",
+      "Cambiar tus hábitos de consumo para forzar la estabilidad del gráfico",
+      "Utilizar un gráfico P para contar los días que no tomaste agua"
+    ],
+    "answer": 0,
+    "explanation": "Para calcular límites de control reales del proceso (y no metas u objetivos), es necesario recopilar inicialmente entre 20 y 25 puntos de datos continuos bajo un proceso estable."
+  },
+  {
+    "id": 8,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Medio",
+    "question": "En el montaje superficial (SMT), se mide el espesor del depósito de soldadura en pasta. Tomamos subgrupos de 15 mediciones por lote debido a la alta velocidad de la máquina. ¿Qué gráfico es mejor?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico I-MR",
+      "Gráfico C"
+    ],
+    "answer": 1,
+    "explanation": "Para subgrupos grandes (n >= 10, en este caso n=15), la desviación estándar del subgrupo (S) es un mejor estimador de la variabilidad que el rango (R). Por ello, se prefiere el gráfico X̄-S."
+  },
+  {
+    "id": 9,
+    "mode": "spc-match",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Medio",
+    "question": "En una prensa servocontrolada, se evalúa la concentricidad del agujero antes de la inserción. Medimos el diámetro del agujero de paso en subgrupos de 8 placas. ¿Qué gráfico de control debemos implementar?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico I-MR",
+      "Gráfico P",
+      "Gráfico NP"
+    ],
+    "answer": 0,
+    "explanation": "Dado que el diámetro es una variable continua y el tamaño del subgrupo es pequeño (n=8, menor a 10), el gráfico X̄-R (Media y Rango) es el más recomendado."
+  },
+  {
+    "id": 10,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Medio",
+    "question": "Se inspecciona la cantidad de burbujas de aire en botellas de vidrio soplado. La cantidad de botellas inspeccionadas por lote varía considerablemente cada día. ¿Qué gráfico SPC se debe usar para registrar los defectos?",
+    "options": [
+      "Gráfico C",
+      "Gráfico U",
+      "Gráfico NP",
+      "Gráfico X̄-S"
+    ],
+    "answer": 1,
+    "explanation": "El gráfico U mide la tasa promedio de defectos por unidad de inspección cuando el tamaño de la muestra (volumen o cantidad de botellas inspeccionadas) varía entre subgrupos."
+  },
+  {
+    "id": 11,
+    "mode": "chart-detective",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Medio",
+    "question": "Examina este gráfico de control de la fuerza de inserción a presión. ¿Qué tipo de patrón no aleatorio u anomalía se detecta a partir del punto 6?",
+    "options": [
+      "Una tendencia lineal ascendente",
+      "Un desplazamiento repentino en la media (shift)",
+      "Un comportamiento cíclico periódico",
+      "Puntos fuera de los límites de control de 3 sigmas"
+    ],
+    "answer": 1,
+    "explanation": "Se observa un cambio abrupto y persistente en el nivel medio del proceso a partir del punto 6 (9 puntos seguidos en la zona superior de la media). Esto indica un desplazamiento de la media (process shift), común si se descalibra la prensa.",
+    "chartData": {
+      "type": "I-MR",
+      "violationType": "shift",
+      "violationPoint": 13,
+      "pointsCount": 15,
+      "cl": 80.0,
+      "ucl": 100.0,
+      "lcl": 60.0,
+      "label": "Fuerza Max (N)"
+    }
+  },
+  {
+    "id": 12,
+    "mode": "problem-solver",
+    "category": "Manufactura general",
+    "difficulty": "Medio",
+    "question": "Si el rango medio (R̄) en un gráfico X̄-R aumenta repentinamente mientras que el promedio de medias (X̄) permanece estable en el centro, ¿qué interpretación es la correcta?",
+    "options": [
+      "El promedio del proceso ha cambiado",
+      "La variabilidad del proceso ha aumentado",
+      "El proceso se ha vuelto más preciso",
+      "La capacidad del proceso (Cp) ha mejorado notablemente"
+    ],
+    "answer": 1,
+    "explanation": "El rango (R) mide la dispersión del proceso. Si R̄ aumenta, significa que la variación entre piezas dentro de los subgrupos se ha incrementado, aunque el promedio central se mantenga igual."
+  },
+  {
+    "id": 13,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Medio",
+    "question": "Llevas el control del porcentaje de correos SPAM que llegan a tu bandeja de entrada. Como el número total de correos recibidos al día cambia, ¿qué gráfico de control debes aplicar?",
+    "options": [
+      "Gráfico P",
+      "Gráfico NP",
+      "Gráfico C",
+      "Gráfico I-MR"
+    ],
+    "answer": 0,
+    "explanation": "Dado que el denominador (el total de correos recibidos al día) es variable, y estamos midiendo la fracción o proporción de defectuosos (correos no deseados), el gráfico P es el correcto."
+  },
+  {
+    "id": 14,
+    "mode": "spc-match",
+    "category": "Manufactura general",
+    "difficulty": "Medio",
+    "question": "En una línea de inyección de plástico, el tamaño del lote diario es siempre fijo (exactamente 500 piezas). Se registra el número de piezas defectuosas por lote. ¿Qué gráfico de atributos es óptimo?",
+    "options": [
+      "Gráfico P",
+      "Gráfico NP",
+      "Gráfico C",
+      "Gráfico U"
+    ],
+    "answer": 1,
+    "explanation": "El gráfico NP se utiliza para registrar el número total de unidades defectuosas cuando el tamaño del subgrupo (o muestra) es constante en cada lote o muestreo."
+  },
+  {
+    "id": 15,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Medio",
+    "question": "Se inspecciona la resistencia de un lote de componentes de potencia midiendo subgrupos de 12 resistencias. ¿Qué gráfico de control por variables es el adecuado?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico P",
+      "Gráfico I-MR"
+    ],
+    "answer": 1,
+    "explanation": "Al tener un subgrupo de tamaño superior a 10 (n=12), se prefiere el gráfico X̄-S (Medias y Desviaciones Estándar) para estimar y controlar con mayor precisión la variabilidad interna."
+  },
+  {
+    "id": 16,
+    "mode": "chart-detective",
+    "category": "Quality inspection",
+    "difficulty": "Medio",
+    "question": "Observa este gráfico de control P. ¿Qué particularidad tienen sus límites de control y por qué?",
+    "options": [
+      "Los límites de control fluctúan porque el tamaño del subgrupo es variable",
+      "Los límites de control son constantes porque el tamaño del subgrupo es fijo",
+      "El gráfico está mal calculado porque los límites de control nunca deben variar",
+      "Es un gráfico C con límites variables para mejorar la estética"
+    ],
+    "answer": 0,
+    "explanation": "En los gráficos de control de atributos como P y U, si el tamaño del subgrupo varía, los límites de control (UCL y LCL) se recalculan para cada punto. Subgrupos más grandes estrechan los límites; subgrupos pequeños los ensanchan.",
+    "chartData": {
+      "type": "P",
+      "violationType": "none",
+      "violationPoint": -1,
+      "pointsCount": 15,
+      "cl": 0.05,
+      "ucl": 0.08,
+      "lcl": 0.02,
+      "label": "Tasa de Rechazo"
+    }
+  },
+  {
+    "id": 17,
+    "mode": "problem-solver",
+    "category": "Manufactura electrónica",
+    "difficulty": "Medio",
+    "question": "Al analizar un gráfico X̄ de espesor de soldadura en SMT, observas 6 puntos consecutivos en orden estrictamente descendente. ¿Cuál es la causa probable y la acción inmediata?",
+    "options": [
+      "Existe un desgaste gradual de la espátula o dosificador (tendencia). Detener el proceso y revisar la herramienta.",
+      "Hubo un cambio abrupto de operario. Continuar la producción sin hacer nada.",
+      "El proceso está mejorando su precisión por sí solo. Seguir midiendo.",
+      "La desviación estándar del subgrupo ha disminuido. Ajustar el gráfico a tipo S."
+    ],
+    "answer": 0,
+    "explanation": "Una serie continua de 6 o más puntos en dirección ascendente o descendente indica una 'Tendencia' (Trend). En SMT, esto suele deberse al desgaste de las cuchillas aplicadoras de pasta o a cambios graduales de temperatura de la pasta."
+  },
+  {
+    "id": 18,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Medio",
+    "question": "Deseas evaluar el número de errores gramaticales o de tipeo por página en tus informes mensuales. Cada página tiene aproximadamente el mismo número de caracteres. ¿Qué gráfico es adecuado?",
+    "options": [
+      "Gráfico C",
+      "Gráfico P",
+      "Gráfico NP",
+      "Gráfico I-MR"
+    ],
+    "answer": 0,
+    "explanation": "Cada página es una unidad constante de muestreo. Al contar defectos en una unidad constante, se utiliza el gráfico C."
+  },
+  {
+    "id": 19,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Medio",
+    "question": "Un inspector mide la resistencia a la ruptura de cables de acero en subgrupos de 4 muestras. Dado el tamaño del subgrupo, ¿cuál es el gráfico por variables recomendado?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico I-MR",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Como el tamaño del subgrupo es pequeño (n=4, menor a 10), el rango (R) es un indicador simple y muy eficiente de la variación, por lo que el gráfico X̄-R es el ideal."
+  },
+  {
+    "id": 20,
+    "mode": "spc-match",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Medio",
+    "question": "En la inserción de conectores a presión, se monitorea la profundidad de inserción. Si la máquina mide individualmente cada pieza y se hace en flujo continuo, ¿qué gráfico usamos?",
+    "options": [
+      "Gráfico I-MR",
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico U"
+    ],
+    "answer": 0,
+    "explanation": "Para mediciones individuales de flujo continuo donde no se agrupan las muestras en lotes, se aplica el gráfico I-MR."
+  },
+  {
+    "id": 21,
+    "mode": "chart-detective",
+    "category": "Manufactura general",
+    "difficulty": "Difícil",
+    "question": "Observa este gráfico de control. Identifica el patrón anómalo de comportamiento a partir del punto 3.",
+    "options": [
+      "Tendencia ascendente de 6 o más puntos",
+      "Patrón de mezcla o comportamiento alternante (ciclado continuo arriba y abajo)",
+      "Desplazamiento sistemático hacia los límites",
+      "Puntos completamente estables y aleatorios"
+    ],
+    "answer": 1,
+    "explanation": "El gráfico muestra un comportamiento donde los puntos alternan arriba y abajo continuamente (patrón de ciclo o mezcla), lo que suele indicar que se están mezclando datos de dos máquinas o turnos distintos en el mismo subgrupo.",
+    "chartData": {
+      "type": "Xbar-S",
+      "violationType": "cycle",
+      "violationPoint": 11,
+      "pointsCount": 15,
+      "cl": 50.0,
+      "ucl": 60.0,
+      "lcl": 40.0,
+      "label": "Temperatura (°C)"
+    }
+  },
+  {
+    "id": 22,
+    "mode": "problem-solver",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Difícil",
+    "question": "Un gráfico I-MR muestra que el punto actual de la fuerza de inserción está dentro de los límites de control del gráfico de individuales (I), pero el rango móvil (MR) del mismo punto está por encima del UCL. ¿Cómo se interpreta?",
+    "options": [
+      "El punto actual no es una anomalía ya que el gráfico de Individuales es el único que importa.",
+      "Hubo un cambio brusco y repentino entre la medición anterior y la actual, indicando inestabilidad en la variabilidad.",
+      "El proceso se encuentra bajo control ya que la media sigue estable.",
+      "Es hora de recalcular el gráfico cambiando a subgrupos n=5."
+    ],
+    "answer": 1,
+    "explanation": "Aunque el valor individual esté dentro de límites, un salto muy brusco respecto al punto anterior disparará el rango móvil (MR) por encima de su UCL. Esto indica una variación inaceptable de pieza a pieza consecutiva."
+  },
+  {
+    "id": 23,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Difícil",
+    "question": "Monitoreamos la cantidad de componentes colocados incorrectamente por cada 10,000 puntos de montaje en placas lógicas de diferentes tamaños. ¿Cuál gráfico es el indicado para la tasa de defectos?",
+    "options": [
+      "Gráfico U",
+      "Gráfico C",
+      "Gráfico P",
+      "Gráfico NP"
+    ],
+    "answer": 0,
+    "explanation": "Medimos la cantidad de defectos por unidad de inspección estándar (tasa) en muestras de tamaño variable (placas de distintos tamaños). Por lo tanto, el gráfico U es la opción correcta."
+  },
+  {
+    "id": 24,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Difícil",
+    "question": "Inspeccionamos bobinas de cable de fibra óptica para contar la cantidad de micro-fracturas por cada 100 metros. El tamaño de cada bobina inspeccionada siempre es fijo. ¿Qué gráfico de atributos debemos aplicar?",
+    "options": [
+      "Gráfico C",
+      "Gráfico U",
+      "Gráfico NP",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Para registrar el conteo de defectos en un área o volumen de oportunidad constante (bobinas de longitud fija de 100 metros), se utiliza el gráfico C."
+  },
+  {
+    "id": 25,
+    "mode": "problem-solver",
+    "category": "Manufactura general",
+    "difficulty": "Difícil",
+    "question": "En un gráfico X̄-R, si estrechamos las tolerancias de ingeniería del producto a la mitad, ¿cómo afecta esto a los límites de control del gráfico SPC?",
+    "options": [
+      "Los límites de control del gráfico se reducen a la mitad.",
+      "Los límites de control no cambian en absoluto.",
+      "Los límites de control se ensanchan para dar más tolerancia.",
+      "El gráfico SPC se vuelve inválido e inutilizable."
+    ],
+    "answer": 1,
+    "explanation": "Los límites de control se calculan estrictamente a partir de la variación natural del proceso (el comportamiento real de la máquina). Las tolerancias de diseño o especificaciones del cliente no influyen en el cálculo de los límites de control de un gráfico SPC."
+  },
+  {
+    "id": 26,
+    "mode": "chart-detective",
+    "category": "Inspección de calidad",
+    "difficulty": "Difícil",
+    "question": "Examina este gráfico de control. Hay 7 puntos consecutivos que ascienden gradualmente. ¿Cuál es el diagnóstico?",
+    "options": [
+      "Tendencia ascendente (trend), lo que indica un cambio o desgaste progresivo en el proceso.",
+      "Proceso en estado óptimo bajo control estadístico.",
+      "Desplazamiento repentino en la media (shift).",
+      "Violación de límite de control superior (punto fuera de control)."
+    ],
+    "answer": 0,
+    "explanation": "Una serie continua de 6 o más puntos en dirección ascendente o descendente es una violación de tendencia. Representa un cambio progresivo como el calentamiento de un equipo o desgaste de herramienta.",
+    "chartData": {
+      "type": "Xbar-R",
+      "violationType": "trend",
+      "violationPoint": 11,
+      "pointsCount": 15,
+      "cl": 15.0,
+      "ucl": 18.0,
+      "lcl": 12.0,
+      "label": "Grosor (μm)"
+    }
+  },
+  {
+    "id": 27,
+    "mode": "spc-match",
+    "category": "Manufactura general",
+    "difficulty": "Difícil",
+    "question": "Un proceso de estampado metálico produce lotes de 1000 piezas fijas. Se cuenta la cantidad de piezas defectuosas generadas por lote. ¿Qué gráfico de atributos monitorea mejor la cantidad de unidades defectuosas?",
+    "options": [
+      "Gráfico NP",
+      "Gráfico P",
+      "Gráfico C",
+      "Gráfico U"
+    ],
+    "answer": 0,
+    "explanation": "El tamaño de lote es constante (1000) y se cuenta la cantidad total de unidades defectuosas (pasan/no pasan), lo que define al gráfico NP como el óptimo."
+  },
+  {
+    "id": 28,
+    "mode": "spc-match",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Difícil",
+    "question": "Medimos la deformación plástica en la base del conector press-fit en subgrupos de 16 mediciones. ¿Qué tipo de gráfico por variables es el adecuado debido al tamaño de subgrupo?",
+    "options": [
+      "Gráfico X̄-S",
+      "Gráfico X̄-R",
+      "Gráfico I-MR",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Para muestras con n > 10 (aquí es 16), el gráfico X̄-S es superior, ya que estimar la variación con el rango (R) pierde eficiencia con muestras grandes."
+  },
+  {
+    "id": 29,
+    "mode": "problem-solver",
+    "category": "Manufactura electrónica",
+    "difficulty": "Difícil",
+    "question": "Para verificar la colocación de chips SMD, queremos iniciar un gráfico P. Sin embargo, no hay un tamaño de lote definido, cada orden varía de 10 a 500 piezas. ¿Cuál es el mayor desafío técnico al usar un gráfico P aquí?",
+    "options": [
+      "Los límites de control variarán para cada punto y serán difíciles de interpretar para el operador si la muestra es muy pequeña.",
+      "No se puede usar un gráfico P con muestras de diferente tamaño.",
+      "El gráfico P requiere que el número de defectos por chip sea menor a 1.",
+      "Se debe cambiar a un gráfico X̄-R para controlar las piezas."
+    ],
+    "answer": 0,
+    "explanation": "Los límites de control del gráfico P dependen del tamaño de muestra n. Si n es muy variable, los límites se ensanchan y encogen constantemente. Muestras muy pequeñas (como 10) darán límites tan amplios que será casi imposible detectar piezas defectuosas."
+  },
+  {
+    "id": 30,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Fácil",
+    "question": "Quieres medir la cantidad de vasos de agua que tomas por día (una medición diaria individual). ¿Qué gráfico de control por variables usarías?",
+    "options": [
+      "Gráfico I-MR",
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico C"
+    ],
+    "answer": 0,
+    "explanation": "Al registrar una única medición por día (vasos de agua consumidos), la muestra diaria es n=1, por lo cual se aplica el gráfico I-MR."
+  },
+  {
+    "id": 31,
+    "mode": "spc-match",
+    "category": "Manufactura general",
+    "difficulty": "Fácil",
+    "question": "En un taller mecánico se mide la longitud de pernos fabricados en subgrupos de 5 unidades. ¿Qué gráfico por variables es el estándar para monitorear la media de la longitud?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico I-MR",
+      "Gráfico P",
+      "Gráfico NP"
+    ],
+    "answer": 0,
+    "explanation": "El subgrupo es pequeño (n=5) y los datos son continuos (longitud), lo que hace al gráfico X̄-R la herramienta clásica."
+  },
+  {
+    "id": 32,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Medio",
+    "question": "Monitoreas la proporción de manzanas podridas que compras a la semana. Dado que la cantidad de manzanas compradas por semana varía, ¿qué gráfico de atributos utilizas?",
+    "options": [
+      "Gráfico P",
+      "Gráfico NP",
+      "Gráfico C",
+      "Gráfico U"
+    ],
+    "answer": 0,
+    "explanation": "Al analizar la proporción (manzanas podridas entre manzanas totales) con un denominador variable (cantidad de manzanas compradas por semana), la respuesta es el gráfico P."
+  },
+  {
+    "id": 33,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Medio",
+    "question": "Un proceso de soldadura produce lotes diarios fijos de 100 placas base. Se registra la cantidad de placas rechazadas por lote. ¿Qué gráfico de atributos tiene tamaño de muestra constante?",
+    "options": [
+      "Gráfico NP",
+      "Gráfico P",
+      "Gráfico C",
+      "Gráfico U"
+    ],
+    "answer": 0,
+    "explanation": "Para un tamaño de subgrupo constante (100 placas base) y datos tipo pasa/no pasa (placas rechazadas), el gráfico NP es el óptimo."
+  },
+  {
+    "id": 34,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Medio",
+    "question": "Se inspecciona la presencia de rasguños en un lote de pantallas táctiles. El lote inspeccionado varía cada día en cantidad de pantallas. ¿Qué gráfico mide la tasa de defectos por pantalla?",
+    "options": [
+      "Gráfico U",
+      "Gráfico C",
+      "Gráfico NP",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "El gráfico U rastrea el número de defectos por unidad (rasguños por pantalla) cuando el tamaño del lote bajo inspección cambia."
+  },
+  {
+    "id": 35,
+    "mode": "chart-detective",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Difícil",
+    "question": "Observa el gráfico de control del rango móvil (MR) en una estación de inserción a presión. Hay un punto que supera el límite de control superior (UCL). ¿Qué significa esto?",
+    "options": [
+      "Significa que la diferencia entre dos mediciones consecutivas fue anormalmente grande, alertando de una inestabilidad súbita en la variación.",
+      "Significa que el promedio de fuerza de inserción ha aumentado.",
+      "Es un error del operador en la lectura de la fuerza.",
+      "Significa que el proceso se detuvo por completo."
+    ],
+    "answer": 0,
+    "explanation": "El gráfico MR mide la variación entre lecturas sucesivas. Un punto por encima de su UCL indica que la diferencia o cambio entre dos piezas seguidas es estadísticamente inaceptable.",
+    "chartData": {
+      "type": "I-MR",
+      "violationType": "out-of-bounds",
+      "violationPoint": 10,
+      "pointsCount": 15,
+      "cl": 5.0,
+      "ucl": 12.0,
+      "lcl": 0.0,
+      "label": "Rango Móvil MR (N)"
+    }
+  },
+  {
+    "id": 36,
+    "mode": "problem-solver",
+    "category": "Manufactura general",
+    "difficulty": "Medio",
+    "question": "Si los puntos de datos de un gráfico de control X̄ caen de forma aleatoria alrededor de la línea central y ninguno supera los límites de control, ¿cuál es el estado del proceso?",
+    "options": [
+      "El proceso está bajo control estadístico (estable).",
+      "El proceso no tiene variabilidad alguna.",
+      "El proceso está produciendo piezas 100% perfectas.",
+      "El proceso necesita ajuste inmediato de centrado."
+    ],
+    "answer": 0,
+    "explanation": "Si la variación es puramente aleatoria y se mantiene dentro de los límites de control de 3 sigmas sin patrones no aleatorios, se dice que el proceso está 'bajo control estadístico' o en estado estable."
+  },
+  {
+    "id": 37,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Medio",
+    "question": "Rastreas el tiempo que tardas en llegar a tu oficina por la mañana (medición diaria única). ¿Qué gráfico de control se debe usar?",
+    "options": [
+      "Gráfico I-MR",
+      "Gráfico X̄-R",
+      "Gráfico C",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Es un dato continuo (tiempo) medido individualmente una vez al día (subgrupo n=1), lo cual requiere un gráfico I-MR."
+  },
+  {
+    "id": 38,
+    "mode": "spc-match",
+    "category": "Manufactura general",
+    "difficulty": "Difícil",
+    "question": "Medimos el peso del contenido de paquetes de café en polvo. Tomamos subgrupos de 14 paquetes cada hora. ¿Qué gráfico de control de variables debemos aplicar?",
+    "options": [
+      "Gráfico X̄-S",
+      "Gráfico X̄-R",
+      "Gráfico I-MR",
+      "Gráfico NP"
+    ],
+    "answer": 0,
+    "explanation": "Al ser subgrupos de tamaño n=14 (superior a 10) con una variable continua (peso), el gráfico X̄-S es metodológicamente el correcto para capturar la variabilidad interna mediante la desviación estándar."
+  },
+  {
+    "id": 39,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Fácil",
+    "question": "Se cuenta el número total de burbujas en la pasta térmica aplicada a procesadores. El área del procesador es siempre la misma. ¿Qué gráfico SPC por atributos debes usar?",
+    "options": [
+      "Gráfico C",
+      "Gráfico U",
+      "Gráfico P",
+      "Gráfico NP"
+    ],
+    "answer": 0,
+    "explanation": "Se registra la cantidad de defectos en una unidad constante de inspección (un procesador de área fija), lo que define al gráfico C."
+  },
+  {
+    "id": 40,
+    "mode": "spc-match",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Medio",
+    "question": "Se mide la holgura en el acoplamiento después de la inserción a presión en subgrupos de 6 piezas. ¿Qué gráfico por variables se ajusta a este tamaño de subgrupo?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico I-MR",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Para datos variables continuos en subgrupos pequeños (n=6, menor a 10), el gráfico X̄-R es la opción recomendada."
+  },
+  {
+    "id": 41,
+    "mode": "chart-detective",
+    "category": "Manufactura general",
+    "difficulty": "Medio",
+    "question": "Observa este gráfico de control. Hay 9 puntos consecutivos en un mismo lado de la línea central. ¿Qué regla se ha violado y qué indica?",
+    "options": [
+      "Regla de desplazamiento (shift) de la media del proceso.",
+      "Regla de tendencia (trend) progresiva.",
+      "Regla de punto fuera de los límites de 3 sigmas.",
+      "No hay ninguna violación, el proceso es estable."
+    ],
+    "answer": 0,
+    "explanation": "Un desplazamiento de la media (run or shift) se identifica cuando 9 o más puntos consecutivos caen del mismo lado de la línea central (CL). Indica que la media del proceso ha cambiado permanentemente y requiere investigación.",
+    "chartData": {
+      "type": "Xbar-R",
+      "violationType": "shift",
+      "violationPoint": 12,
+      "pointsCount": 15,
+      "cl": 20.0,
+      "ucl": 25.0,
+      "lcl": 15.0,
+      "label": "Presión (Bar)"
+    }
+  },
+  {
+    "id": 42,
+    "mode": "problem-solver",
+    "category": "Inspección de calidad",
+    "difficulty": "Difícil",
+    "question": "En un gráfico de control P para la tasa de rechazo de piezas metálicas, el promedio histórico (P̄) es de 2%. Si en un lote medido la tasa de rechazo es de 10% y cae fuera del límite superior (UCL), ¿qué se debe concluir sobre la causa raíz?",
+    "options": [
+      "Se ha presentado una causa especial de variación (causa asignable) que debe investigarse inmediatamente.",
+      "Es una variación común y normal del proceso debido al azar.",
+      "El gráfico P está mal diseñado porque los límites de control son demasiado estrechos.",
+      "Las tolerancias de los planos de ingeniería son demasiado estrictas."
+    ],
+    "answer": 0,
+    "explanation": "Los puntos fuera de los límites de control (3 sigmas) son causados por variaciones especiales o asignables. No son normales del proceso y requieren identificar la causa raíz (ej. cambio de lote de materia prima, descalibración)."
+  },
+  {
+    "id": 43,
+    "mode": "spc-match",
+    "category": "Vida cotidiana",
+    "difficulty": "Medio",
+    "question": "Llevas la cuenta del número de veces que se traba tu computadora por mes. Como todos los meses tienen una duración e intensidad de uso similar, ¿qué gráfico utilizas?",
+    "options": [
+      "Gráfico C",
+      "Gráfico U",
+      "Gráfico P",
+      "Gráfico X̄-R"
+    ],
+    "answer": 0,
+    "explanation": "Cada mes representa una unidad de inspección estándar (de tamaño constante). El conteo de fallos por mes se monitorea con un gráfico C."
+  },
+  {
+    "id": 44,
+    "mode": "spc-match",
+    "category": "Manufactura general",
+    "difficulty": "Medio",
+    "question": "Medimos la dureza de perfiles extruidos de aluminio en muestras por hora de 5 piezas. ¿Qué gráfico de variables elegimos?",
+    "options": [
+      "Gráfico X̄-R",
+      "Gráfico X̄-S",
+      "Gráfico I-MR",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Muestra pequeña (n=5) y variable continua (dureza), el gráfico estándar a utilizar es el X̄-R."
+  },
+  {
+    "id": 45,
+    "mode": "spc-match",
+    "category": "Manufactura electrónica",
+    "difficulty": "Difícil",
+    "question": "Se inspecciona el número de fallos de soldadura en placas lógicas de tamaño variable. Queremos controlar el número promedio de defectos por junta inspeccionada. ¿Qué gráfico es el correcto?",
+    "options": [
+      "Gráfico U",
+      "Gráfico C",
+      "Gráfico P",
+      "Gráfico NP"
+    ],
+    "answer": 0,
+    "explanation": "Al evaluar defectos por unidad (tasa de defectos) en subgrupos de tamaño variable, la herramienta estándar es el gráfico U."
+  },
+  {
+    "id": 46,
+    "mode": "chart-detective",
+    "category": "Manufactura general",
+    "difficulty": "Medio",
+    "question": "Mira el gráfico de control X̄. ¿Qué tipo de anomalía detectas a partir del punto 5 que muestra una dirección lineal constante?",
+    "options": [
+      "Tendencia ascendente (trend).",
+      "Desplazamiento súbito de la media (shift).",
+      "Punto fuera de límites (out of limits).",
+      "Comportamiento cíclico alternante."
+    ],
+    "answer": 0,
+    "explanation": "Se observa una tendencia de puntos consecutivos ascendiendo de forma lineal a partir del punto 5. Esto indica un desajuste progresivo, común por desgaste de herramienta o aumento térmico de la máquina.",
+    "chartData": {
+      "type": "Xbar-R",
+      "violationType": "trend",
+      "violationPoint": 11,
+      "pointsCount": 15,
+      "cl": 30.0,
+      "ucl": 35.0,
+      "lcl": 25.0,
+      "label": "Temperatura (°C)"
+    }
+  },
+  {
+    "id": 47,
+    "mode": "problem-solver",
+    "category": "Proceso de inserción a presión",
+    "difficulty": "Fácil",
+    "question": "¿Cuál es la función principal de la línea central (CL) en un gráfico de individuales (I) de fuerza de inserción?",
+    "options": [
+      "Representar la media histórica o promedio aritmético del proceso bajo control.",
+      "Representar la especificación nominal requerida por el cliente.",
+      "Representar el valor máximo tolerado por la máquina prensa.",
+      "Representar la mediana ideal de la fuerza de inserción."
+    ],
+    "answer": 0,
+    "explanation": "La línea central (CL) en cualquier gráfico SPC representa la media histórica o el comportamiento central real del proceso, no la especificación de diseño."
+  },
+  {
+    "id": 48,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Difícil",
+    "question": "Se inspecciona la resistencia al desgaste de cojinetes en subgrupos de 20 muestras cada turno. ¿Qué gráfico de variables se debe usar considerando el tamaño de muestra?",
+    "options": [
+      "Gráfico X̄-S",
+      "Gráfico X̄-R",
+      "Gráfico I-MR",
+      "Gráfico P"
+    ],
+    "answer": 0,
+    "explanation": "Al tener subgrupos grandes (n=20, mayor a 10) y medir datos continuos, la desviación estándar del subgrupo (S) es mejor indicador que el rango, por lo cual el gráfico X̄-S es la mejor elección."
+  },
+  {
+    "id": 49,
+    "mode": "spc-match",
+    "category": "Inspección de calidad",
+    "difficulty": "Medio",
+    "question": "En un muestreo diario de exactamente 200 tornillos, contamos el número total de tornillos defectuosos (pasan/no pasan). ¿Qué gráfico de atributos con muestra constante debemos emplear?",
+    "options": [
+      "Gráfico NP",
+      "Gráfico P",
+      "Gráfico C",
+      "Gráfico U"
+    ],
+    "answer": 0,
+    "explanation": "Dado que el subgrupo tiene un tamaño de muestra constante (n=200) y se clasifica la muestra de forma binomial (con defectos o sin defectos), se debe implementar un gráfico NP."
+  },
+  {
+    "id": 50,
+    "mode": "problem-solver",
+    "category": "Manufactura electrónica",
+    "difficulty": "Medio",
+    "question": "Para mejorar la calidad en el montaje superficial, ¿por qué es preferible actuar ante una violación de regla de tendencia en un gráfico X̄ de soldadura en lugar de esperar a que un punto salga de los límites de control (UCL/LCL)?",
+    "options": [
+      "Porque la tendencia permite realizar mantenimiento preventivo y evitar que se produzcan tarjetas defectuosas antes de que ocurran.",
+      "Porque los límites de control no son válidos si hay tendencias.",
+      "Porque las tendencias representan una mayor multa de calidad del cliente.",
+      "Porque los operadores ganan más bono de productividad al corregir tendencias."
+    ],
+    "answer": 0,
+    "explanation": "Monitorear patrones no aleatorios como tendencias permite la detección temprana de anomalías antes de que el proceso comience a producir fuera de límites de control, logrando un control proactivo en vez de reactivo."
+  },
+  {
+    "id": 51,
+    "mode": "problem-solver",
+    "category": "Manufactura general",
+    "difficulty": "Difícil",
+    "question": "Si la capacidad del proceso Cp es 1.5 pero el Cpk es 0.6, ¿cuál es el diagnóstico principal del proceso en el gráfico de control SPC?",
+    "options": [
+      "El proceso tiene muy baja variación pero está descentrado respecto a las especificaciones.",
+      "El proceso tiene demasiada variación pero está perfectamente centrado.",
+      "El proceso está totalmente bajo control y centrado.",
+      "El gráfico de control SPC tiene límites de control mal calculados."
+    ],
+    "answer": 0,
+    "explanation": "El Cp mide el ancho potencial del proceso frente al rango de especificación; un valor de 1.5 es excelente. Sin embargo, un Cpk de 0.6 (muy bajo) indica que el promedio está severamente desviado o descentrado hacia uno de los límites de especificación, requiriendo un ajuste de centrado."
+  }
+]
