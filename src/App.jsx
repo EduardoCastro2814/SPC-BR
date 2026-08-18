@@ -1,18 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardView from './components/DashboardView';
 import HostView from './components/HostView';
 import PlayerView from './components/PlayerView';
 import { useGameSync } from './hooks/useGameSync';
-import { Tv, Smartphone, Layers, ShieldCheck, Settings } from 'lucide-react';
+import { Trophy, Award, BookOpen, Users, Smartphone, BarChart3, HelpCircle, ArrowLeft } from 'lucide-react';
+
+// --- CUTE CARTOON SVG ILLUSTRATIONS FOR CARDS ---
+function ControllerIllustration() {
+  return (
+    <svg width="100" height="70" viewBox="0 0 100 70" fill="none" className="mx-auto mb-4 animate-float">
+      <rect x="10" y="10" width="80" height="50" rx="16" fill="#00AEEF" stroke="#005B96" strokeWidth="4"/>
+      <circle cx="30" cy="35" r="8" fill="#FFFFFF" stroke="#005B96" strokeWidth="2"/>
+      <path d="M30 30 L30 40 M25 35 L35 35" stroke="#005B96" strokeWidth="3" strokeLinecap="round"/>
+      <circle cx="64" cy="35" r="4" fill="#EF4444"/>
+      <circle cx="74" cy="35" r="4" fill="#22C55E"/>
+    </svg>
+  );
+}
+
+function TeacherIllustration() {
+  return (
+    <svg width="100" height="70" viewBox="0 0 100 70" fill="none" className="mx-auto mb-4 animate-float" style={{ animationDelay: '0.5s' }}>
+      <rect x="15" y="10" width="70" height="40" rx="8" fill="#FBBF24" stroke="#005B96" strokeWidth="4"/>
+      <line x1="25" y1="20" x2="75" y2="20" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="25" y1="30" x2="60" y2="30" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round"/>
+      {/* Patas de pizarra */}
+      <line x1="30" y1="50" x2="20" y2="65" stroke="#005B96" strokeWidth="4" strokeLinecap="round"/>
+      <line x1="70" y1="50" x2="80" y2="65" stroke="#005B96" strokeWidth="4" strokeLinecap="round"/>
+      <circle cx="70" cy="35" r="4" fill="#22C55E" />
+    </svg>
+  );
+}
+
+function SmartphoneIllustration() {
+  return (
+    <svg width="100" height="70" viewBox="0 0 100 70" fill="none" className="mx-auto mb-4 animate-float" style={{ animationDelay: '1s' }}>
+      <rect x="35" y="5" width="30" height="60" rx="8" fill="#EAF6FF" stroke="#005B96" strokeWidth="4"/>
+      <rect x="40" y="10" width="20" height="42" rx="4" fill="#FFFFFF" stroke="#005B96" strokeWidth="2"/>
+      <circle cx="50" cy="58" r="3" fill="#00AEEF"/>
+      <circle cx="50" cy="20" r="3" fill="#22C55E"/>
+      <path d="M45 36 Q 50 40 55 36" stroke="#EF4444" strokeWidth="2" fill="none"/>
+    </svg>
+  );
+}
+
+function MedalIllustration() {
+  return (
+    <svg width="100" height="70" viewBox="0 0 100 70" fill="none" className="mx-auto mb-4 animate-float" style={{ animationDelay: '1.5s' }}>
+      <path d="M 38 10 L 50 10 L 50 35 L 38 35 Z" fill="#EF4444"/>
+      <path d="M 50 10 L 62 10 L 62 35 L 50 35 Z" fill="#00AEEF"/>
+      <circle cx="50" cy="40" r="16" fill="#FBBF24" stroke="#005B96" strokeWidth="4"/>
+      <circle cx="50" cy="40" r="10" fill="#FFFBEB"/>
+      {/* Copa o estrella adentro */}
+      <path d="M50 34 L52 38 L57 38 L53 41 L55 45 L50 42 L45 45 L47 41 L43 38 L48 38 Z" fill="#FBBF24"/>
+    </svg>
+  );
+}
 
 export default function App() {
-  // 'ROUTER' o 'HOST' o 'PLAYER' o 'SANDBOX'
-  const [viewMode, setViewMode] = useState('ROUTER');
+  const [viewMode, setViewMode] = useState('ROUTER'); // ROUTER, HOST, PLAYER, SANDBOX, RANKINGS
   const [isMuted, setIsMuted] = useState(false);
+  const [rankings, setRankings] = useState([]);
 
-  // Inicialización de hooks para flujos independientes
+  // Inicialización de sincronizadores
   const standaloneHostSync = useGameSync(true);
   const standalonePlayerSync = useGameSync(false);
+
+  // Leer y cargar rankings de localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('spc_battle_rankings');
+    if (saved) {
+      setRankings(JSON.parse(saved));
+    } else {
+      // Prellenar con algunos puntajes de bots divertidos si está vacío
+      const defaultRankings = [
+        { name: 'Inspector_Rob (Bot)', score: 4820, date: '17/08/2026' },
+        { name: 'SPC_Sensei (Bot)', score: 4560, date: '17/08/2026' },
+        { name: 'Solder_Pro (Bot)', score: 4120, date: '17/08/2026' },
+        { name: 'Gears_Op (Bot)', score: 3840, date: '16/08/2026' },
+        { name: 'Calip_Expert (Bot)', score: 3250, date: '15/08/2026' }
+      ];
+      localStorage.setItem('spc_battle_rankings', JSON.stringify(defaultRankings));
+      setRankings(defaultRankings);
+    }
+  }, []);
+
+  // Escuchar si el juego termina en el host para registrar automáticamente el puntaje del ganador
+  useEffect(() => {
+    if (standaloneHostSync.gameState === 'PODIUM' && standaloneHostSync.players.length > 0) {
+      const winner = [...standaloneHostSync.players].sort((a, b) => b.score - a.score)[0];
+      if (winner) {
+        setRankings((prev) => {
+          // Comprobar si el ganador ya está registrado hoy
+          if (prev.some((r) => r.name === winner.name && r.score === winner.score)) {
+            return prev;
+          }
+          const today = new Date().toLocaleDateString('es-ES');
+          const updated = [...prev, { name: winner.name, score: winner.score, date: today }]
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10); // Conservar top 10
+          localStorage.setItem('spc_battle_rankings', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    }
+  }, [standaloneHostSync.gameState, standaloneHostSync.players]);
 
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
@@ -24,19 +116,20 @@ export default function App() {
 
   if (viewMode === 'HOST') {
     return (
-      <div className="min-h-screen bg-gray-950 p-6 flex flex-col">
+      <div className="min-h-screen bg-blue-50/10 p-6 flex flex-col font-sans">
         <div className="mb-4">
           <button
             onClick={() => {
-              standaloneHostSync.startLobby(); // resetear
+              standaloneHostSync.startLobby();
               setViewMode('ROUTER');
             }}
-            className="px-4 py-2 bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg text-xs font-mono font-bold active:scale-95 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-500 font-mono font-black text-xs uppercase rounded-2xl active:scale-95 transition-all shadow-sm"
           >
-            ← Volver al Menú Principal
+            <ArrowLeft className="w-4 h-4" />
+            Volver al Menú Principal
           </button>
         </div>
-        <div className="flex-1 bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="flex-1 bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col">
           <HostView
             sync={standaloneHostSync}
             isMuted={isMuted}
@@ -49,97 +142,153 @@ export default function App() {
 
   if (viewMode === 'PLAYER') {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 flex flex-col justify-center items-center">
+      <div className="min-h-screen bg-blue-50/20 p-4 flex flex-col justify-center items-center font-sans">
         <div className="w-full max-w-sm mb-4">
           <button
             onClick={() => setViewMode('ROUTER')}
-            className="px-4 py-2 bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg text-xs font-mono font-bold active:scale-95 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-500 font-mono font-black text-xs uppercase rounded-2xl active:scale-95 transition-all shadow-sm"
           >
-            ← Menú Principal
+            <ArrowLeft className="w-4 h-4" />
+            Menú Principal
           </button>
         </div>
-        <div className="w-full max-w-sm bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col">
           <PlayerView sync={standalonePlayerSync} />
         </div>
       </div>
     );
   }
 
+  // VISTA DE RANKINGS (HALL OF FAME)
+  if (viewMode === 'RANKINGS') {
+    return (
+      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col justify-center items-center font-sans">
+        <div className="w-full max-w-xl mb-4">
+          <button
+            onClick={() => setViewMode('ROUTER')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-500 font-mono font-black text-xs uppercase rounded-2xl active:scale-95 transition-all shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver al Menú
+          </button>
+        </div>
+
+        <div className="w-full max-w-xl bg-white border-2 border-blue-100 p-6 rounded-3xl shadow-xl space-y-6">
+          <div className="text-center">
+            <Trophy className="w-16 h-16 text-yellow-400 mx-auto animate-bounce mb-2" />
+            <h2 className="text-3xl font-black font-mono text-blue-500 uppercase">Salón de la Fama</h2>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">Mejores Puntuaciones de SPC Battle Arena</p>
+          </div>
+
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            {rankings.map((rank, idx) => {
+              const medals = ['🥇 1º', '🥈 2º', '🥉 3º'];
+              const medalText = medals[idx] || `${idx + 1}º`;
+              const rowBg = idx === 0 
+                ? 'bg-yellow-50 border-yellow-200 text-yellow-800' 
+                : (idx === 1 ? 'bg-slate-50 border-slate-200 text-slate-700' : (idx === 2 ? 'bg-orange-50 border-orange-200 text-orange-800' : 'bg-white border-blue-50 text-slate-800'));
+              
+              return (
+                <div key={idx} className={`flex justify-between items-center px-4 py-2.5 border-2 rounded-2xl ${rowBg} shadow-sm font-mono font-bold text-xs`}>
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 font-black">{medalText}</span>
+                    <span className="text-sm font-black">{rank.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-blue-500 font-black">{rank.score} XP</span>
+                    <span className="text-[10px] text-slate-400">{rank.date}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-center pt-2">
+            <button
+              onClick={() => {
+                if (window.confirm('¿Deseas resetear el Salón de la Fama?')) {
+                  localStorage.removeItem('spc_battle_rankings');
+                  window.location.reload();
+                }
+              }}
+              className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-500 font-bold text-[10px] font-mono uppercase tracking-wider rounded-xl transition-all"
+            >
+              Resetear Marcador
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // MENU PRINCIPAL (ROUTER)
   return (
-    <div className="min-h-screen bg-gray-950 text-white font-sans flex flex-col justify-between relative overflow-hidden">
-      {/* Retícula de fondo industrial */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.01)_1px,transparent_1px)] bg-[size:40px_40px]" />
+    <div className="min-h-screen bg-blue-50/20 text-slate-800 font-sans flex flex-col justify-between relative overflow-hidden">
+      {/* Retícula lúdica de fondo */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,174,239,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,174,239,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
       
-      {/* Puntos de luz decorativos */}
-      <div className="absolute top-neg-20 left-neg-10 w-half h-half bg-blue-600/5 rounded-full blur-120" />
-      <div className="absolute bottom-neg-20 right-neg-10 w-half h-half bg-cyan-600/5 rounded-full blur-120" />
+      {/* Globos de color decorativos */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-100/30 rounded-full blur-[100px]" />
 
       {/* Cabecera Principal */}
       <header className="relative z-10 text-center pt-16 px-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-950/60 border border-blue-800/40 text-blue-400 rounded-full text-xs font-mono font-bold tracking-widest uppercase mb-4 animate-pulse">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Plataforma de Entrenamiento de Calidad
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 border-2 border-blue-100 text-blue-500 rounded-full text-xs font-mono font-black tracking-widest uppercase mb-4 animate-bounce">
+          <BookOpen className="w-4 h-4 fill-current" />
+          ¡Aprende Calidad Jugando!
         </div>
         
-        <h1 className="text-4xl sm:text-6xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 font-mono select-none uppercase drop-shadow-sm">
-          SPC BATTLE ARENA
+        <h1 className="text-5xl sm:text-6xl font-black tracking-wider text-blue-600 font-mono select-none uppercase drop-shadow-md">
+          🏆 SPC Battle Arena
         </h1>
-        <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto mt-3 font-medium">
-          Aprende a seleccionar e interpretar gráficos de control estadístico de procesos (SPC) a través de juego cooperativo y competitivo en tiempo real.
+        <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto mt-3 font-bold">
+          Learn Statistical Process Control through challenges, competitions and games.
         </p>
       </header>
 
-      {/* Selector de Roles */}
-      <main className="relative z-10 max-w-5xl mx-auto w-full px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Grid de Modos de Juego */}
+      <main className="relative z-10 max-w-5xl mx-auto w-full px-6 py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           
-          {/* Tarjeta 1: SIMULADOR INTEGRADO (RECOMENDADO) */}
-          <div className="bg-gray-900 border-2 border-blue-500/80 rounded-2xl p-6 shadow-2xl flex flex-col justify-between hover-scale-up transition-all duration-200 relative group overflow-hidden">
-            <div className="absolute top-0 right-0 bg-blue-500 text-white font-mono font-black text-[9px] px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+          {/* Tarjeta 1: PRÁCTICA (SANDBOX DEMO) */}
+          <div className="bg-white border-3 border-blue-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover-scale-up relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-blue-500 text-white font-mono font-black text-[9px] px-3 py-1 rounded-bl-xl uppercase tracking-wider">
               Recomendado
             </div>
             
-            <div className="space-y-4">
-              <div className="p-3.5 bg-blue-950/60 text-blue-400 border border-blue-800/40 rounded-xl w-fit">
-                <Layers className="w-6 h-6 animate-pulse" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold uppercase font-mono tracking-wide text-blue-400">
-                  Simulador Demo
-                </h3>
-                <p className="text-xs text-gray-400 font-mono uppercase tracking-widest mt-1">
-                  Pantalla Dividida
-                </p>
-              </div>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                Ejecuta el proyector de preguntas y la consola del jugador lado a lado. Se incorporan automáticamente 4 oponentes bots para jugar de inmediato en tu equipo de pruebas.
+            <div className="text-center pt-2">
+              <ControllerIllustration />
+              <h3 className="text-lg font-black font-mono text-blue-500 uppercase">
+                🎮 Practice Mode
+              </h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                Modo Sandbox
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+                Learn SPC concepts. Prueba el juego con bots y proyector integrado en la misma pantalla.
               </p>
             </div>
             
             <button
               onClick={() => setViewMode('SANDBOX')}
-              className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg shadow-blue-600/10 active:scale-95 transition-all"
+              className="w-full mt-5 py-3.5 bg-blue-500 hover:bg-blue-600 border-b-4 border-blue-700 text-white font-mono font-black text-xs uppercase tracking-wider rounded-2xl shadow-md"
             >
-              Iniciar Simulador
+              ¡Jugar Demo!
             </button>
           </div>
 
           {/* Tarjeta 2: LANZAR INSTRUCTOR */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between hover:border-gray-700 transition-all duration-200 relative group overflow-hidden">
-            <div className="space-y-4">
-              <div className="p-3.5 bg-gray-950/60 text-gray-400 border border-gray-800 rounded-xl w-fit group-hover:text-blue-400 group-hover:border-blue-900/30 transition-colors">
-                <Tv className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold uppercase font-mono tracking-wide">
-                  Instructor
-                </h3>
-                <p className="text-xs text-gray-500 font-mono uppercase tracking-widest mt-1">
-                  Pantalla del Host
-                </p>
-              </div>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Lanza el juego para proyectar en una sala de capacitación. Genera un PIN único para que los alumnos ingresen y gestiona el avance de las diapositivas de control estadístico.
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-md flex flex-col justify-between hover-scale-up">
+            <div className="text-center pt-2">
+              <TeacherIllustration />
+              <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
+                🏫 Instructor Mode
+              </h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                Proyectar Juego
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+                Host a live competition. Lanza una sala con PIN para proyectar en el aula y entrenar a tus alumnos.
               </p>
             </div>
             
@@ -148,46 +297,65 @@ export default function App() {
                 standaloneHostSync.startLobby();
                 setViewMode('HOST');
               }}
-              className="w-full mt-6 py-3 bg-gray-800 hover:bg-gray-700 text-white border border-gray-750 font-mono font-bold text-xs uppercase tracking-wider rounded-lg active:scale-95 transition-all"
+              className="w-full mt-5 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 text-slate-650 font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
               Lanzar Host
             </button>
           </div>
 
           {/* Tarjeta 3: CONSOLA DE JUGADOR */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between hover:border-gray-700 transition-all duration-200 relative group overflow-hidden">
-            <div className="space-y-4">
-              <div className="p-3.5 bg-gray-950/60 text-gray-400 border border-gray-800 rounded-xl w-fit group-hover:text-blue-400 group-hover:border-blue-900/30 transition-colors">
-                <Smartphone className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold uppercase font-mono tracking-wide">
-                  Jugador
-                </h3>
-                <p className="text-xs text-gray-500 font-mono uppercase tracking-widest mt-1">
-                  Consola de Respuesta
-                </p>
-              </div>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Únete a una partida activa en el proyector de tu instructor. Introduce el PIN generado e ingresa tu apodo para competir por precisión y velocidad de respuesta.
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-md flex flex-col justify-between hover-scale-up">
+            <div className="text-center pt-2">
+              <SmartphoneIllustration />
+              <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
+                📱 Player Mode
+              </h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                Consola Móvil
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+                Join a game session. Introduce el PIN del instructor para responder las preguntas en tu dispositivo.
               </p>
             </div>
             
             <button
               onClick={() => setViewMode('PLAYER')}
-              className="w-full mt-6 py-3 bg-gray-800 hover:bg-gray-700 text-white border border-gray-750 font-mono font-bold text-xs uppercase tracking-wider rounded-lg active:scale-95 transition-all"
+              className="w-full mt-5 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 text-slate-650 font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
-              Unirse como Jugador
+              Unirme
+            </button>
+          </div>
+
+          {/* Tarjeta 4: RANKINGS */}
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-md flex flex-col justify-between hover-scale-up">
+            <div className="text-center pt-2">
+              <MedalIllustration />
+              <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
+                🏅 Rankings
+              </h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                Salón de la Fama
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+                View top scores. Revisa la lista de los mejores puntajes acumulados históricamente en el juego.
+              </p>
+            </div>
+            
+            <button
+              onClick={() => setViewMode('RANKINGS')}
+              className="w-full mt-5 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 text-slate-650 font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
+            >
+              Ver Récords
             </button>
           </div>
 
         </div>
       </main>
 
-      {/* Pie de página educativo */}
-      <footer className="relative z-10 border-t border-gray-900 bg-gray-950/40 backdrop-blur py-8 px-6 text-center text-xs text-gray-500 font-mono">
+      {/* Pie de página didáctico claro */}
+      <footer className="relative z-10 border-t border-blue-50 bg-white py-8 px-6 text-center text-xs text-slate-400 font-mono font-bold">
         <div className="max-w-4xl mx-auto space-y-3">
-          <div className="flex justify-center flex-wrap gap-4 text-gray-400 uppercase tracking-widest text-[9px] font-bold">
+          <div className="flex justify-center flex-wrap gap-4 text-blue-500 uppercase tracking-widest text-[10px] font-black">
             <span>X̄-R Chart</span>
             <span>X̄-S Chart</span>
             <span>I-MR Chart</span>
@@ -196,10 +364,10 @@ export default function App() {
             <span>C Chart</span>
             <span>U Chart</span>
           </div>
-          <p className="max-w-xl mx-auto leading-relaxed">
-            SPC Battle Arena enseña a los ingenieros y operadores a seleccionar el gráfico de control óptimo (por variables continuas o por atributos discretos) y a aplicar las reglas de Western Electric para identificar causas asignables.
+          <p className="max-w-2xl mx-auto leading-relaxed text-slate-500 font-medium">
+            SPC Battle Arena gamifica el aprendizaje del Control Estadístico de Procesos. Aprende a elegir la gráfica idónea para variables continuas y atributos discretos, e interpreta tendencias e inestabilidades mediante las reglas de Western Electric.
           </p>
-          <p className="text-[10px] text-gray-600">
+          <p className="text-[10px] text-slate-450">
             © {new Date().getFullYear()} Flex Manufacturing Training System. Optimizado para GitHub Pages.
           </p>
         </div>

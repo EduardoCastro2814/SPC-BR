@@ -6,8 +6,6 @@ function generateChartData(type, violationType, violationPoint, pointsCount, cl,
   const range = ucl - lcl;
   const sigma = range / 6; // 6 sigmas cubren la distancia LCL a UCL
   
-  let currentMean = cl;
-  
   for (let i = 0; i < pointsCount; i++) {
     let val = cl;
     
@@ -57,7 +55,6 @@ export default function ControlChartVisualizer({ chartConfig }) {
   // Generar puntos del gráfico secundario (Rango o Desviación Estándar) si es dual
   const secondaryPoints = useMemo(() => {
     if (!isDual) return [];
-    // El gráfico secundario suele ser estable excepto en el caso de variabilidad aumentada
     const sCL = cl * 0.3;
     const sUCL = sCL * 2.2;
     const sLCL = 0;
@@ -83,14 +80,12 @@ export default function ControlChartVisualizer({ chartConfig }) {
     const getX = (index) => paddingLeft + (index / (pointsCount - 1)) * chartWidth;
     const getY = (val) => paddingTop + chartHeight - ((val - minVal) / valRange) * chartHeight;
     
-    // Límites de control variables (por ejemplo para gráfico P/U con muestra variable)
     const isVariableLimits = (type === 'P' || type === 'U') && panelIndex === 0;
     
     const limitsPoints = useMemo(() => {
       if (!isVariableLimits) return null;
-      // Simular límites que fluctúan levemente por subgrupo
       return pList.map((_, idx) => {
-        const factor = 1 + 0.15 * Math.sin(idx * 1.5); // simular variación del tamaño de muestra
+        const factor = 1 + 0.15 * Math.sin(idx * 1.5);
         const diffU = upperLimit - centerVal;
         const diffL = centerVal - lowerLimit;
         return {
@@ -109,13 +104,13 @@ export default function ControlChartVisualizer({ chartConfig }) {
     });
     
     return (
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto bg-gray-900 border border-gray-800 rounded-md overflow-hidden shadow-inner">
-        {/* Título de gráfico */}
-        <text x="15" y="20" fill="#9ca3af" fontSize="11" fontWeight="bold" fontFamily="monospace">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto bg-white border border-blue-100 rounded-2xl overflow-hidden shadow-sm">
+        {/* Título del panel */}
+        <text x="15" y="20" fill="#005B96" fontSize="11" fontWeight="bold" fontFamily="Fredoka">
           {title}
         </text>
         
-        {/* Rejilla de fondo vertical */}
+        {/* Rejilla vertical redondeada y amigable */}
         {pList.map((_, idx) => (
           <line
             key={`grid-${idx}`}
@@ -123,8 +118,9 @@ export default function ControlChartVisualizer({ chartConfig }) {
             y1={paddingTop}
             x2={getX(idx)}
             y2={paddingTop + chartHeight}
-            stroke="rgba(255, 255, 255, 0.03)"
-            strokeWidth="1"
+            stroke="rgba(0, 174, 239, 0.05)"
+            strokeWidth="1.5"
+            strokeDasharray="2 2"
           />
         ))}
         
@@ -134,27 +130,26 @@ export default function ControlChartVisualizer({ chartConfig }) {
           y1={getY(centerVal)}
           x2={width - paddingRight}
           y2={getY(centerVal)}
-          stroke="#3b82f6"
-          strokeWidth="1.5"
-          strokeDasharray="4 3"
+          stroke="#00AEEF"
+          strokeWidth="2"
+          strokeDasharray="6 4"
         />
-        <text x={width - paddingRight + 5} y={getY(centerVal) + 4} fill="#60a5fa" fontSize="9" fontWeight="bold" fontFamily="monospace">
+        <text x={width - paddingRight + 5} y={getY(centerVal) + 4} fill="#00AEEF" fontSize="9" fontWeight="bold" fontFamily="Fredoka">
           CL: {centerVal.toFixed(2)}
         </text>
         
         {/* Límites de control (LCS / LCI) */}
         {isVariableLimits ? (
-          // Dibujar límites escalonados variables
           <>
             {/* Límite Superior Variable */}
             <path
               d={limitsPoints.map((pt, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(idx)} ${getY(pt.ucl)}`).join(' ')}
               fill="none"
-              stroke="#ef4444"
-              strokeWidth="1.5"
-              strokeDasharray="2 2"
+              stroke="#EF4444"
+              strokeWidth="2"
+              strokeDasharray="3 3"
             />
-            <text x={width - paddingRight + 5} y={getY(limitsPoints[limitsPoints.length - 1].ucl) + 4} fill="#f87171" fontSize="9" fontWeight="bold" fontFamily="monospace">
+            <text x={width - paddingRight + 5} y={getY(limitsPoints[limitsPoints.length - 1].ucl) + 4} fill="#EF4444" fontSize="9" fontWeight="bold" fontFamily="Fredoka">
               UCL (Var)
             </text>
             
@@ -162,16 +157,15 @@ export default function ControlChartVisualizer({ chartConfig }) {
             <path
               d={limitsPoints.map((pt, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(idx)} ${getY(pt.lcl)}`).join(' ')}
               fill="none"
-              stroke="#ef4444"
-              strokeWidth="1.5"
-              strokeDasharray="2 2"
+              stroke="#EF4444"
+              strokeWidth="2"
+              strokeDasharray="3 3"
             />
-            <text x={width - paddingRight + 5} y={getY(limitsPoints[limitsPoints.length - 1].lcl) + 4} fill="#f87171" fontSize="9" fontWeight="bold" fontFamily="monospace">
+            <text x={width - paddingRight + 5} y={getY(limitsPoints[limitsPoints.length - 1].lcl) + 4} fill="#EF4444" fontSize="9" fontWeight="bold" fontFamily="Fredoka">
               LCL (Var)
             </text>
           </>
         ) : (
-          // Límites estándar constantes
           <>
             {/* Límite Superior (UCL) */}
             <line
@@ -179,10 +173,10 @@ export default function ControlChartVisualizer({ chartConfig }) {
               y1={getY(upperLimit)}
               x2={width - paddingRight}
               y2={getY(upperLimit)}
-              stroke="#ef4444"
-              strokeWidth="1.5"
+              stroke="#EF4444"
+              strokeWidth="2"
             />
-            <text x={width - paddingRight + 5} y={getY(upperLimit) + 4} fill="#ef4444" fontSize="9" fontWeight="bold" fontFamily="monospace">
+            <text x={width - paddingRight + 5} y={getY(upperLimit) + 4} fill="#EF4444" fontSize="9" fontWeight="bold" fontFamily="Fredoka">
               UCL: {upperLimit.toFixed(2)}
             </text>
             
@@ -192,26 +186,25 @@ export default function ControlChartVisualizer({ chartConfig }) {
               y1={getY(lowerLimit)}
               x2={width - paddingRight}
               y2={getY(lowerLimit)}
-              stroke="#ef4444"
-              strokeWidth="1.5"
+              stroke="#EF4444"
+              strokeWidth="2"
             />
-            <text x={width - paddingRight + 5} y={getY(lowerLimit) + 4} fill="#ef4444" fontSize="9" fontWeight="bold" fontFamily="monospace">
+            <text x={width - paddingRight + 5} y={getY(lowerLimit) + 4} fill="#EF4444" fontSize="9" fontWeight="bold" fontFamily="Fredoka">
               LCL: {lowerLimit.toFixed(2)}
             </text>
           </>
         )}
         
-        {/* Línea que conecta los puntos del proceso */}
-        <path d={pathData} fill="none" stroke="#06b6d4" strokeWidth="2" className="shadow-lg" />
+        {/* Línea del proceso */}
+        <path d={pathData} fill="none" stroke="#005B96" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         
-        {/* Nodos de datos */}
+        {/* Nodos de datos de Caricatura (Sonrientes / Preocupados) */}
         {pList.map((val, idx) => {
           const cx = getX(idx);
           const cy = getY(val);
           
-          // Verificar si el punto infringe alguna regla en este panel
           let isPointViolation = false;
-          if (panelIndex === 0) { // Las violaciones de las preguntas se programan en el panel principal
+          if (panelIndex === 0) {
             if (violationType === 'out-of-bounds' && idx === violationPoint) {
               isPointViolation = true;
             } else if (violationType === 'shift' && idx >= violationPoint - 8 && idx <= violationPoint) {
@@ -219,31 +212,44 @@ export default function ControlChartVisualizer({ chartConfig }) {
             } else if (violationType === 'trend' && idx >= violationPoint - 7 && idx <= violationPoint) {
               isPointViolation = true;
             } else if (violationType === 'cycle' && idx >= 2) {
-              isPointViolation = true; // resaltar el comportamiento cíclico
+              isPointViolation = true;
             }
           }
           
           return (
-            <g key={`point-group-${idx}`}>
+            <g key={`point-group-${idx}`} className="cursor-pointer">
               {isPointViolation ? (
-                <>
-                  {/* Círculo pulsante de alerta */}
+                <g>
+                  {/* Círculo rojo de alerta caricatura */}
+                  <circle cx={cx} cy={cy} r="9" fill="#EF4444" stroke="#ffffff" strokeWidth="2" />
+                  {/* Ojos sorprendidos o.o */}
+                  <circle cx={cx - 3} cy={cy - 2} r="1.5" fill="#ffffff" />
+                  <circle cx={cx + 3} cy={cy - 2} r="1.5" fill="#ffffff" />
+                  {/* Boca sorprendida o triste */}
+                  <circle cx={cx} cy={cy + 3} r="2" fill="#ffffff" />
+                  {/* Círculo pulsante de alerta externa */}
                   <circle
                     cx={cx}
                     cy={cy}
-                    r="8"
+                    r="14"
                     fill="none"
-                    stroke="#ef4444"
+                    stroke="#EF4444"
                     strokeWidth="1.5"
                     className="animate-ping"
                     style={{ transformOrigin: `${cx}px ${cy}px` }}
                   />
-                  <circle cx={cx} cy={cy} r="5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-                </>
+                </g>
               ) : (
-                <circle cx={cx} cy={cy} r="4" fill="#06b6d4" stroke="#111827" strokeWidth="1.5" className="hover:scale-150 transition-transform duration-100 cursor-pointer" />
+                <g className="hover:scale-150 transition-transform duration-150" style={{ transformOrigin: `${cx}px ${cy}px` }}>
+                  {/* Círculo verde feliz */}
+                  <circle cx={cx} cy={cy} r="7.5" fill="#22C55E" stroke="#ffffff" strokeWidth="1.5" />
+                  {/* Ojos sonrientes ^.^ */}
+                  <circle cx={cx - 2.2} cy={cy - 1.5} r="1" fill="#ffffff" />
+                  <circle cx={cx + 2.2} cy={cy - 1.5} r="1" fill="#ffffff" />
+                  {/* Boca feliz */}
+                  <path d={`M ${cx - 2.5} ${cy + 1.5} Q ${cx} ${cy + 3.5} ${cx + 2.5} ${cy + 1.5}`} stroke="#ffffff" strokeWidth="1" fill="none" />
+                </g>
               )}
-              {/* Etiqueta flotante con el valor */}
               <title>{`${label} (Muestra ${idx + 1}): ${val.toFixed(2)}`}</title>
             </g>
           );
@@ -253,11 +259,15 @@ export default function ControlChartVisualizer({ chartConfig }) {
   };
   
   return (
-    <div className="flex flex-col gap-3 p-3 bg-gray-950 border border-gray-800 rounded-lg max-w-xl mx-auto shadow-xl">
-      <div className="text-center text-xs font-bold text-blue-400 border-b border-gray-800 pb-2 flex justify-between items-center px-1">
-        <span>GRÁFICO DE CONTROL: {type}</span>
-        <span className="bg-blue-950 text-blue-300 px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider">
-          {violationType === 'none' ? 'Estable' : 'Anomalía Detectada'}
+    <div className="flex flex-col gap-3 p-4 bg-blue-50/50 border-2 border-blue-100 rounded-3xl max-w-xl mx-auto shadow-lg">
+      <div className="text-center text-sm font-bold text-blue-500 border-b border-blue-100 pb-2 flex justify-between items-center px-1">
+        <span className="font-mono">GRAFICADOR SPC JUEGO</span>
+        <span className={`px-3 py-1 rounded-full text-[10px] uppercase font-mono tracking-wider font-bold ${
+          violationType === 'none' 
+            ? 'bg-green-100 text-green-600 border border-green-200' 
+            : 'bg-red-100 text-red-650 border border-red-200'
+        }`}>
+          {violationType === 'none' ? '✓ Estable' : '⚠ Anomalía!'}
         </span>
       </div>
       
@@ -268,7 +278,7 @@ export default function ControlChartVisualizer({ chartConfig }) {
           cl, 
           ucl, 
           lcl, 
-          isDual ? (type === 'I-MR' ? 'GRÁFICO I (INDIVIDUALES)' : 'GRÁFICO X̄ (PROMEDIOS)') : `GRÁFICO ${type}`,
+          isDual ? (type === 'I-MR' ? 'DIAGRAMA I (VALORES INDIVIDUALES)' : 'DIAGRAMA X̄ (MEDIA DEL PROCESO)') : `DIAGRAMA ${type}`,
           160,
           0
         )}
@@ -276,37 +286,37 @@ export default function ControlChartVisualizer({ chartConfig }) {
       
       {/* Panel Inferior: R, S o MR para Gráficos Duales */}
       {isDual && (
-        <div className="relative">
+        <div className="relative animate-fadeIn">
           {renderPanel(
             secondaryPoints,
-            cl * 0.3, // CL del rango aproximado
-            cl * 0.3 * 2.2, // UCL del rango aproximado
-            0, // LCL
-            type === 'I-MR' ? 'GRÁFICO MR (RANGO MÓVIL)' : (type === 'Xbar-R' ? 'GRÁFICO R (RANGOS)' : 'GRÁFICO S (DESVIACIONES)'),
+            cl * 0.3,
+            cl * 0.3 * 2.2,
+            0,
+            type === 'I-MR' ? 'DIAGRAMA MR (RANGO MÓVIL)' : (type === 'Xbar-R' ? 'DIAGRAMA R (RANGOS)' : 'DIAGRAMA S (DESVIACIONES)'),
             120,
             1
           )}
         </div>
       )}
       
-      {/* Glosario de ayuda en miniatura */}
-      <div className="flex justify-center gap-4 text-[10px] text-gray-500 font-mono pt-1">
+      {/* Leyenda Didáctica de Caricatura */}
+      <div className="flex justify-center flex-wrap gap-4 text-[10px] text-slate-500 font-mono pt-1">
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-0.5 bg-red-500 inline-block"></span>
-          <span>Límites (UCL/LCL)</span>
+          <span>Límites (LCS/LCI)</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-0.5 bg-blue-500 border-t border-dashed inline-block"></span>
-          <span>Media (CL)</span>
+          <span className="w-2.5 h-0.5 bg-blue-400 border-t border-dashed inline-block"></span>
+          <span>Centro (CL)</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span>
-          <span>Proceso</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
+          <span>Estable (:)</span>
         </div>
         {violationType !== 'none' && (
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-red-500 inline-block animate-pulse"></span>
-            <span className="text-red-400 font-bold">Inestabilidad</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block animate-pulse"></span>
+            <span className="text-red-500 font-bold">Inestable (o.o)</span>
           </div>
         )}
       </div>
