@@ -225,33 +225,42 @@ export default function App() {
   return (
     <div className="min-h-screen bg-blue-50/20 text-slate-800 font-sans flex flex-col justify-between relative overflow-hidden">
       {/* Retícula lúdica de fondo */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,174,239,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,174,239,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,174,239,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,174,239,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
       
       {/* Globos de color decorativos */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-[100px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-100/30 rounded-full blur-[100px]" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-100/30 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Ilustraciones lúdicas flotantes en el fondo (Subtles) */}
+      <div className="absolute top-10 left-[8%] opacity-[0.06] pointer-events-none animate-float">
+        <Trophy className="w-24 h-24 text-blue-600" />
+      </div>
+      <div className="absolute top-20 right-[8%] opacity-[0.06] pointer-events-none animate-float" style={{ animationDelay: '1s' }}>
+        <BarChart3 className="w-28 h-28 text-blue-600" />
+      </div>
+      <div className="absolute bottom-20 left-[6%] opacity-[0.06] pointer-events-none animate-float" style={{ animationDelay: '2s' }}>
+        <Users className="w-24 h-24 text-blue-600" />
+      </div>
+      <div className="absolute bottom-16 right-[6%] opacity-[0.06] pointer-events-none animate-float" style={{ animationDelay: '3s' }}>
+        <Award className="w-28 h-28 text-blue-600" />
+      </div>
 
       {/* Cabecera Principal */}
-      <header className="relative z-10 text-center pt-16 px-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 border-2 border-blue-100 text-blue-500 rounded-full text-xs font-mono font-black tracking-widest uppercase mb-4 animate-bounce">
-          <BookOpen className="w-4 h-4 fill-current" />
-          ¡Aprende Calidad Jugando!
-        </div>
-        
-        <h1 className="text-5xl sm:text-6xl font-black tracking-wider text-blue-600 font-mono select-none uppercase drop-shadow-md">
-          🏆 SPC Battle Arena
+      <header className="relative z-10 text-center pt-8 px-6">
+        <h1 className="fluid-title font-black tracking-wider text-blue-600 font-mono select-none uppercase drop-shadow-sm leading-tight">
+          SPC Battle Arena
         </h1>
-        <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto mt-3 font-bold">
+        <p className="fluid-subtitle text-slate-500 max-w-2xl mx-auto mt-2 font-bold leading-relaxed">
           Learn Statistical Process Control through challenges, competitions and games.
         </p>
       </header>
 
-      {/* Grid de Modos de Juego */}
-      <main className="relative z-10 max-w-5xl mx-auto w-full px-6 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      {/* Grid de Modos de Juego (1400px máx width y responsive) */}
+      <main className="relative z-10 max-w-[1400px] mx-auto w-full px-6 py-6 flex-1 flex items-center justify-center">
+        <div className="game-cards-grid w-full">
           
           {/* Tarjeta 1: PRÁCTICA (SANDBOX DEMO) */}
-          <div className="bg-white border-3 border-blue-500 rounded-3xl p-5 shadow-lg flex flex-col justify-between hover-scale-up relative overflow-hidden">
+          <div className="bg-white border-3 border-blue-500 rounded-3xl p-6 shadow-lg flex flex-col justify-between hover-scale-up relative overflow-hidden h-full">
             <div className="absolute top-0 right-0 bg-blue-500 text-white font-mono font-black text-[9px] px-3 py-1 rounded-bl-xl uppercase tracking-wider">
               Recomendado
             </div>
@@ -264,21 +273,21 @@ export default function App() {
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                 Modo Sandbox
               </p>
-              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+              <p className="text-xs text-slate-550 leading-relaxed mt-4">
                 Learn SPC concepts. Prueba el juego con bots y proyector integrado en la misma pantalla.
               </p>
             </div>
             
             <button
               onClick={() => setViewMode('SANDBOX')}
-              className="w-full mt-5 py-3.5 bg-blue-500 hover:bg-blue-600 border-b-4 border-blue-700 text-white font-mono font-black text-xs uppercase tracking-wider rounded-2xl shadow-md"
+              className="w-full mt-6 py-4 btn-primary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
               ¡Jugar Demo!
             </button>
           </div>
 
           {/* Tarjeta 2: LANZAR INSTRUCTOR */}
-          <div className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-md flex flex-col justify-between hover-scale-up">
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-scale-up h-full">
             <div className="text-center pt-2">
               <TeacherIllustration />
               <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
@@ -287,7 +296,7 @@ export default function App() {
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                 Proyectar Juego
               </p>
-              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+              <p className="text-xs text-slate-550 leading-relaxed mt-4">
                 Host a live competition. Lanza una sala con PIN para proyectar en el aula y entrenar a tus alumnos.
               </p>
             </div>
@@ -297,14 +306,14 @@ export default function App() {
                 standaloneHostSync.startLobby();
                 setViewMode('HOST');
               }}
-              className="w-full mt-5 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 text-slate-650 font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
+              className="w-full mt-6 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
               Lanzar Host
             </button>
           </div>
 
           {/* Tarjeta 3: CONSOLA DE JUGADOR */}
-          <div className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-md flex flex-col justify-between hover-scale-up">
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-scale-up h-full">
             <div className="text-center pt-2">
               <SmartphoneIllustration />
               <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
@@ -313,21 +322,21 @@ export default function App() {
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                 Consola Móvil
               </p>
-              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+              <p className="text-xs text-slate-550 leading-relaxed mt-4">
                 Join a game session. Introduce el PIN del instructor para responder las preguntas en tu dispositivo.
               </p>
             </div>
             
             <button
               onClick={() => setViewMode('PLAYER')}
-              className="w-full mt-5 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 text-slate-650 font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
+              className="w-full mt-6 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
               Unirme
             </button>
           </div>
 
           {/* Tarjeta 4: RANKINGS */}
-          <div className="bg-white border-2 border-blue-100 rounded-3xl p-5 shadow-md flex flex-col justify-between hover-scale-up">
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-scale-up h-full">
             <div className="text-center pt-2">
               <MedalIllustration />
               <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
@@ -336,14 +345,14 @@ export default function App() {
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                 Salón de la Fama
               </p>
-              <p className="text-xs text-slate-500 leading-relaxed mt-3">
+              <p className="text-xs text-slate-550 leading-relaxed mt-4">
                 View top scores. Revisa la lista de los mejores puntajes acumulados históricamente en el juego.
               </p>
             </div>
             
             <button
               onClick={() => setViewMode('RANKINGS')}
-              className="w-full mt-5 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 text-slate-650 font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
+              className="w-full mt-6 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
               Ver Récords
             </button>
@@ -352,24 +361,15 @@ export default function App() {
         </div>
       </main>
 
-      {/* Pie de página didáctico claro */}
-      <footer className="relative z-10 border-t border-blue-50 bg-white py-8 px-6 text-center text-xs text-slate-400 font-mono font-bold">
-        <div className="max-w-4xl mx-auto space-y-3">
-          <div className="flex justify-center flex-wrap gap-4 text-blue-500 uppercase tracking-widest text-[10px] font-black">
-            <span>X̄-R Chart</span>
-            <span>X̄-S Chart</span>
-            <span>I-MR Chart</span>
-            <span>P Chart</span>
-            <span>NP Chart</span>
-            <span>C Chart</span>
-            <span>U Chart</span>
+      {/* Pie de página didáctico simplificado */}
+      <footer className="relative z-10 border-t border-blue-50 bg-white py-6 px-6 text-center text-xs text-slate-400 font-mono font-bold">
+        <div className="max-w-4xl mx-auto space-y-2">
+          <div className="text-blue-500 uppercase tracking-widest text-xs font-black">
+            X̄-R | X̄-S | I-MR | P | NP | C | U
           </div>
-          <p className="max-w-2xl mx-auto leading-relaxed text-slate-500 font-medium">
-            SPC Battle Arena gamifica el aprendizaje del Control Estadístico de Procesos. Aprende a elegir la gráfica idónea para variables continuas y atributos discretos, e interpreta tendencias e inestabilidades mediante las reglas de Western Electric.
-          </p>
-          <p className="text-[10px] text-slate-450">
-            © {new Date().getFullYear()} Flex Manufacturing Training System. Optimizado para GitHub Pages.
-          </p>
+          <div className="text-[10px] text-slate-500">
+            © SPC Battle Arena
+          </div>
         </div>
       </footer>
     </div>

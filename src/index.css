@@ -514,7 +514,7 @@ input:focus {
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
 .hover-scale-up:hover {
-  transform: translateY(-5px) scale(1.03);
+  transform: translateY(-6px) scale(1.03);
   box-shadow: var(--shadow-lg);
 }
 
@@ -522,3 +522,88 @@ input:focus {
 .answer-bar-active:active {
   transform: scale(0.96);
 }
+
+/* --- REJILLA FLUIDA Y AJUSTE DE CARTAS --- */
+.game-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 3.5vw, 28px);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .game-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .game-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Forzar altura igual en las cartas de la rejilla */
+.game-cards-grid > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+/* Centrado casi a pantalla completa de cartas en móviles */
+@media (max-width: 767px) {
+  .game-cards-grid > div {
+    width: 92%;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+  
+  /* Incremento de tamaño de botones y metas de toque en celulares */
+  button, .btn-primary, .btn-secondary {
+    padding: clamp(14px, 4vw, 18px) !important;
+    font-size: clamp(14px, 3vw, 16px) !important;
+    min-height: 48px; /* Recomendación de accesibilidad */
+  }
+}
+
+/* --- JERARQUÍA VISUAL DE BOTONES --- */
+
+/* Botón Primario: Gradiente Azul con borde 3D */
+.btn-primary {
+  background-image: linear-gradient(135deg, var(--secondary-blue), var(--primary-blue)) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 4px solid #004578 !important;
+  box-shadow: 0 4px 10px rgba(0, 91, 150, 0.15);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 91, 150, 0.25);
+  filter: brightness(1.05);
+}
+
+/* Botón Secundario: Fondo blanco con borde azul */
+.btn-secondary {
+  background-color: #ffffff !important;
+  border: 3px solid var(--secondary-blue) !important;
+  color: var(--primary-blue) !important;
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover {
+  background-color: var(--light-blue) !important;
+  border-color: var(--primary-blue) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Estilo fluido de tipografía del título */
+.fluid-title {
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  line-height: 1.1;
+}
+.fluid-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  line-height: 1.4;
+}
+
