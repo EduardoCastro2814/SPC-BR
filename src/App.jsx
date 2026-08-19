@@ -4,21 +4,10 @@ import HostView from './components/HostView';
 import PlayerView from './components/PlayerView';
 import { useGameSync } from './hooks/useGameSync';
 import { Trophy, Award, Users, BarChart3, ArrowLeft, RefreshCw } from 'lucide-react';
-import { supabase, isSupabaseConfigured, clearSupabaseConfig } from './services/supabase';
-import SupabaseConfigView from './components/SupabaseConfigView';
+import { supabase } from './services/supabase';
 
 // --- CUTE CARTOON SVG ILLUSTRATIONS FOR CARDS ---
-function ControllerIllustration() {
-  return (
-    <svg width="100" height="70" viewBox="0 0 100 70" fill="none" className="mx-auto mb-4 animate-float">
-      <rect x="10" y="10" width="80" height="50" rx="16" fill="#00AEEF" stroke="#005B96" strokeWidth="4"/>
-      <circle cx="30" cy="35" r="8" fill="#FFFFFF" stroke="#005B96" strokeWidth="2"/>
-      <path d="M30 30 L30 40 M25 35 L35 35" stroke="#005B96" strokeWidth="3" strokeLinecap="round"/>
-      <circle cx="64" cy="35" r="4" fill="#EF4444"/>
-      <circle cx="74" cy="35" r="4" fill="#22C55E"/>
-    </svg>
-  );
-}
+
 
 function TeacherIllustration() {
   return (
@@ -46,58 +35,34 @@ function SmartphoneIllustration() {
   );
 }
 
-function MedalIllustration() {
-  return (
-    <svg width="100" height="70" viewBox="0 0 100 70" fill="none" className="mx-auto mb-4 animate-float" style={{ animationDelay: '1.5s' }}>
-      <path d="M 38 10 L 50 10 L 50 35 L 38 35 Z" fill="#EF4444"/>
-      <path d="M 50 10 L 62 10 L 62 35 L 50 35 Z" fill="#00AEEF"/>
-      <circle cx="50" cy="40" r="16" fill="#FBBF24" stroke="#005B96" strokeWidth="4"/>
-      <circle cx="50" cy="40" r="10" fill="#FFFBEB"/>
-      {/* Copa o estrella adentro */}
-      <path d="M50 34 L52 38 L57 38 L53 41 L55 45 L50 42 L45 45 L47 41 L43 38 L48 38 Z" fill="#FBBF24"/>
-    </svg>
-  );
-}
+
 
 export default function App() {
-  const [viewMode, setViewMode] = useState('ROUTER'); // ROUTER, HOST, PLAYER, SANDBOX, RANKINGS
+  const [viewMode, setViewMode] = useState(() => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    return isMobile ? 'PLAYER' : 'ROUTER';
+  });
   const [isMuted, setIsMuted] = useState(false);
   const [rankings, setRankings] = useState([]);
 
   // Validación de conexión al inicio
-  const [startupConnStatus, setStartupConnStatus] = useState('checking'); // checking, success, failed, ready
-  const [startupError, setStartupError] = useState('');
+  const [startupConnStatus, setStartupConnStatus] = useState('checking'); // checking, failed, ready
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    
     const checkConnection = async () => {
+      if (!supabase) {
+        setStartupConnStatus('failed');
+        return;
+      }
       try {
         const { error } = await supabase.from('games').select('count', { count: 'exact', head: true });
         if (error) {
           setStartupConnStatus('failed');
-          
-          if (error.message.includes('Failed to fetch') || error.code === 'PGRST100' || error.message.includes('TypeError')) {
-            setStartupError('Error de red o CORS. Asegúrate de que el URL de Supabase sea correcto y que no haya ad-blockers bloqueando la conexión.');
-          } else if (error.message.includes('relation "public.games" does not exist') || error.code === '42P01') {
-            setStartupError('Las tablas requeridas no existen en la base de datos de Supabase. Debes ejecutar el archivo schema.sql en tu editor de SQL.');
-          } else if (error.message.includes('Invalid API key') || error.message.includes('JWT') || error.code === 'PGRST301') {
-            setStartupError('La clave Anon API Key de Supabase es inválida o ha expirado.');
-          } else if (error.code === '42501' || error.message.includes('permission denied')) {
-            setStartupError('Acceso bloqueado por RLS (Row Level Security). Aplica las políticas de lectura/escritura públicas del archivo schema.sql.');
-          } else {
-            setStartupError(`${error.message} [Código: ${error.code || 'Desconocido'}]`);
-          }
         } else {
-          setStartupConnStatus('success');
-          // Breve retraso para mostrar el mensaje de éxito y luego ir al menú
-          setTimeout(() => {
-            setStartupConnStatus('ready');
-          }, 1200);
+          setStartupConnStatus('ready');
         }
-      } catch (err) {
+      } catch {
         setStartupConnStatus('failed');
-        setStartupError(err.message);
       }
     };
     
@@ -152,30 +117,14 @@ export default function App() {
     setIsMuted((prev) => !prev);
   };
 
-  if (!isSupabaseConfigured()) {
-    return <SupabaseConfigView />;
-  }
-
   // Comprobar estado de carga de la conexión inicial
   if (startupConnStatus === 'checking') {
     return (
       <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
         <div className="w-full max-w-md bg-white border-2 border-blue-800 p-8 rounded-3xl shadow-xl text-center space-y-4">
           <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mx-auto" />
-          <h2 className="text-lg font-black font-mono text-blue-600 uppercase">Verificando Servidor</h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Conectando a Supabase...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (startupConnStatus === 'success') {
-    return (
-      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
-        <div className="w-full max-w-md bg-white border-2 border-emerald-500 p-8 rounded-3xl shadow-xl text-center space-y-4 animate-float">
-          <div className="text-5xl animate-bounce">✅</div>
-          <h2 className="text-lg font-black font-mono text-green-600 uppercase">Conectado a Supabase</h2>
-          <p className="text-xs text-slate-450 font-mono uppercase tracking-wider font-bold">¡Bienvenido a la Arena!</p>
+          <h2 className="text-lg font-black font-mono text-blue-600 uppercase">Cargando juego</h2>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Estableciendo conexión...</p>
         </div>
       </div>
     );
@@ -186,27 +135,13 @@ export default function App() {
       <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
         <div className="w-full max-w-md bg-white border-2 border-rose-500 p-8 rounded-3xl shadow-xl text-center space-y-6">
           <div className="text-rose-500 text-5xl">❌</div>
-          <h2 className="text-xl font-black font-mono text-red-500 uppercase">Error de conexión</h2>
-          
-          <div className="text-xs font-mono bg-red-50 border border-red-150 p-4 rounded-2xl text-red-800 leading-relaxed text-left break-all select-text font-bold">
-            <span className="block font-black text-[10px] uppercase text-red-500 mb-1">Razón del Error:</span>
-            {startupError}
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => window.location.reload()}
-              className="flex-grow py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono font-black uppercase text-xs rounded-2xl border-2 border-slate-200 active:scale-95 transition-all"
-            >
-              Reintentar
-            </button>
-            <button
-              onClick={() => clearSupabaseConfig()}
-              className="flex-grow py-3 bg-red-500 hover:bg-red-600 text-white font-mono font-black uppercase text-xs rounded-2xl border-b-4 border-red-700 active:scale-95 transition-all"
-            >
-              Configurar Servidor
-            </button>
-          </div>
+          <h2 className="text-xl font-black font-mono text-red-500 uppercase">Error de conexión al servidor</h2>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-4 bg-red-500 hover:bg-red-650 text-white font-mono font-black uppercase text-xs rounded-2xl border-b-4 border-red-700 active:scale-95 transition-all shadow-md"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -243,17 +178,20 @@ export default function App() {
   }
 
   if (viewMode === 'PLAYER') {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     return (
       <div className="min-h-screen bg-blue-50/20 p-4 flex flex-col justify-center items-center font-sans">
-        <div className="w-full max-w-sm mb-4">
-          <button
-            onClick={() => setViewMode('ROUTER')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-500 font-mono font-black text-xs uppercase rounded-2xl active:scale-95 transition-all shadow-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Menú Principal
-          </button>
-        </div>
+        {!isMobile && (
+          <div className="w-full max-w-sm mb-4">
+            <button
+              onClick={() => setViewMode('ROUTER')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-500 font-mono font-black text-xs uppercase rounded-2xl active:scale-95 transition-all shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Menú Principal
+            </button>
+          </div>
+        )}
         <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col">
           <PlayerView sync={standalonePlayerSync} />
         </div>
@@ -357,49 +295,22 @@ export default function App() {
         </p>
       </header>
 
-      {/* Grid de Modos de Juego (1400px máx width y responsive) */}
-      <main className="relative z-10 max-w-[1400px] mx-auto w-full px-6 py-6 flex-1 flex items-center justify-center">
-        <div className="game-cards-grid w-full">
+      {/* Grid de Modos de Juego (1000px máx width y 2 columnas) */}
+      <main className="relative z-10 max-w-[1000px] mx-auto w-full px-6 py-6 flex-1 flex items-center justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
           
-          {/* Tarjeta 1: PRÁCTICA (SANDBOX DEMO) */}
-          <div className="bg-white border-3 border-blue-500 rounded-3xl p-6 shadow-lg flex flex-col justify-between hover-scale-up relative overflow-hidden h-full">
-            <div className="absolute top-0 right-0 bg-blue-500 text-white font-mono font-black text-[9px] px-3 py-1 rounded-bl-xl uppercase tracking-wider">
-              Recomendado
-            </div>
-            
-            <div className="text-center pt-2">
-              <ControllerIllustration />
-              <h3 className="text-lg font-black font-mono text-blue-500 uppercase">
-                🎮 Practice Mode
-              </h3>
-              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                Modo Sandbox
-              </p>
-              <p className="text-xs text-slate-550 leading-relaxed mt-4">
-                Learn SPC concepts. Prueba el juego con bots y proyector integrado en la misma pantalla.
-              </p>
-            </div>
-            
-            <button
-              onClick={() => setViewMode('SANDBOX')}
-              className="w-full mt-6 py-4 btn-primary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
-            >
-              ¡Jugar Demo!
-            </button>
-          </div>
-
-          {/* Tarjeta 2: LANZAR INSTRUCTOR */}
-          <div className="bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-scale-up h-full">
+          {/* Tarjeta 1: LANZAR INSTRUCTOR */}
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-8 shadow-md flex flex-col justify-between hover-scale-up h-full">
             <div className="text-center pt-2">
               <TeacherIllustration />
-              <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
-                🏫 Instructor Mode
+              <h3 className="text-xl font-black font-mono text-slate-700 uppercase">
+                ✅ Modo Instructor
               </h3>
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                 Proyectar Juego
               </p>
               <p className="text-xs text-slate-550 leading-relaxed mt-4">
-                Host a live competition. Lanza una sala con PIN para proyectar en el aula y entrenar a tus alumnos.
+                Lanza una sala con PIN para proyectar en el aula y entrenar a tus alumnos.
               </p>
             </div>
             
@@ -408,55 +319,32 @@ export default function App() {
                 standaloneHostSync.startLobby();
                 setViewMode('HOST');
               }}
-              className="w-full mt-6 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
+              className="w-full mt-8 py-4 btn-primary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
               Lanzar Host
             </button>
           </div>
 
-          {/* Tarjeta 3: CONSOLA DE JUGADOR */}
-          <div className="bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-scale-up h-full">
+          {/* Tarjeta 2: CONSOLA DE JUGADOR */}
+          <div className="bg-white border-2 border-blue-100 rounded-3xl p-8 shadow-md flex flex-col justify-between hover-scale-up h-full">
             <div className="text-center pt-2">
               <SmartphoneIllustration />
-              <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
-                📱 Player Mode
+              <h3 className="text-xl font-black font-mono text-slate-700 uppercase">
+                ✅ Modo Jugador
               </h3>
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
                 Consola Móvil
               </p>
               <p className="text-xs text-slate-550 leading-relaxed mt-4">
-                Join a game session. Introduce el PIN del instructor para responder las preguntas en tu dispositivo.
+                Introduce el PIN del instructor para responder las preguntas en tu dispositivo.
               </p>
             </div>
             
             <button
               onClick={() => setViewMode('PLAYER')}
-              className="w-full mt-6 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
+              className="w-full mt-8 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
             >
-              Unirme
-            </button>
-          </div>
-
-          {/* Tarjeta 4: RANKINGS */}
-          <div className="bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-scale-up h-full">
-            <div className="text-center pt-2">
-              <MedalIllustration />
-              <h3 className="text-lg font-black font-mono text-slate-700 uppercase">
-                🏅 Rankings
-              </h3>
-              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                Salón de la Fama
-              </p>
-              <p className="text-xs text-slate-550 leading-relaxed mt-4">
-                View top scores. Revisa la lista de los mejores puntajes acumulados históricamente en el juego.
-              </p>
-            </div>
-            
-            <button
-              onClick={() => setViewMode('RANKINGS')}
-              className="w-full mt-6 py-4 btn-secondary font-mono font-black text-xs uppercase tracking-wider rounded-2xl"
-            >
-              Ver Récords
+              Unirse
             </button>
           </div>
 
@@ -472,18 +360,8 @@ export default function App() {
           <div className="text-[10px] text-slate-500">
             © SPC Battle Arena
           </div>
-          <div className="pt-2 flex justify-center items-center gap-2 text-[10px] text-slate-400">
-            <span className="text-emerald-500 font-black">●</span> Servidor Supabase Conectado
-            <button
-              onClick={() => {
-                if (window.confirm('¿Deseas desconectar o cambiar la base de datos de Supabase?')) {
-                  clearSupabaseConfig();
-                }
-              }}
-              className="text-blue-500 hover:text-blue-600 underline font-bold transition-all ml-1"
-            >
-              Cambiar Configuración
-            </button>
+          <div className="pt-2 text-[10px] text-slate-400 flex justify-center items-center gap-1.5">
+            <span className="text-emerald-500">●</span> Servidor Activo
           </div>
         </div>
       </footer>

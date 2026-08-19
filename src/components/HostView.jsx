@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import questionsData from '../data/questions.json';
 import ControlChartVisualizer from './ControlChartVisualizer';
 import { AvatarSVG } from './PlayerView';
 import { Users, Play, Plus, ArrowRight, Award, HelpCircle, Volume2, VolumeX, Flame, Trophy } from 'lucide-react';
-import DebugLogsDrawer from './DebugLogsDrawer';
 
 export default function HostView({ sync, isMuted, onToggleMute }) {
-  const [isLogsOpen, setIsLogsOpen] = useState(false);
-
   const {
     pin,
     gameState,
@@ -19,10 +16,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
     addBotPlayer,
     startQuestion,
     showLeaderboard,
-    nextQuestion,
-    connectionStatus,
-    debugLogs,
-    clearLogs
+    nextQuestion
   } = sync;
 
   const currentQuestion = questionsData[currentQuestionIndex];
@@ -30,38 +24,8 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
 
   const wrap = (content) => {
     return (
-      <div className="relative flex-1 flex flex-col min-h-500">
+      <div className="relative flex-1 flex flex-col min-h-500 font-sans">
         {content}
-        
-        {/* Floating Debug Status Badge & Debug Log Drawer Button */}
-        <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2 pointer-events-auto">
-          {connectionStatus === 'connected' ? (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 border border-green-500 text-green-700 text-[10px] font-mono font-bold rounded-xl shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span> Supabase Conectado
-            </span>
-          ) : connectionStatus === 'connecting' ? (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 border border-yellow-500 text-amber-700 text-[10px] font-mono font-bold rounded-xl shadow-sm animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-yellow-500"></span> Conectando...
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 border border-red-500 text-red-700 text-[10px] font-mono font-bold rounded-xl shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span> Desconectado
-            </span>
-          )}
-          <button
-            onClick={() => setIsLogsOpen(true)}
-            className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-650 font-mono text-[10px] uppercase font-bold rounded-xl shadow-sm flex items-center gap-1 active:scale-95 transition-all"
-          >
-            🐞 Depurar
-          </button>
-        </div>
-
-        <DebugLogsDrawer
-          logs={debugLogs}
-          isOpen={isLogsOpen}
-          onClose={() => setIsLogsOpen(false)}
-          onClear={clearLogs}
-        />
       </div>
     );
   };

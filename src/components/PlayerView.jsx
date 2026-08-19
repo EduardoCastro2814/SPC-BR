@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Zap, ShieldAlert, HelpCircle } from 'lucide-react';
-import DebugLogsDrawer from './DebugLogsDrawer';
 
 // --- CUTE CARTOON SVG AVATARS ---
 export function AvatarSVG({ type, size = 64 }) {
@@ -139,8 +138,6 @@ function ConfettiEffect() {
 }
 
 export default function PlayerView({ sync }) {
-  const [isLogsOpen, setIsLogsOpen] = useState(false);
-
   const {
     pin,
     gameState,
@@ -154,10 +151,7 @@ export default function PlayerView({ sync }) {
     myStreak,
     myRank,
     joinGame,
-    submitAnswer,
-    connectionStatus,
-    debugLogs,
-    clearLogs
+    submitAnswer
   } = sync;
 
   const [inputPin, setInputPin] = useState('');
@@ -167,40 +161,9 @@ export default function PlayerView({ sync }) {
   const wrap = (content) => {
     return (
       <div className="relative flex-1 flex flex-col min-h-500 justify-between">
-        {/* Top connection status and debug bar inside player card */}
-        <div className="bg-slate-50 border-b border-blue-50 px-4 py-2 flex justify-between items-center z-20">
-          {connectionStatus === 'connected' ? (
-            <span className="flex items-center gap-1 bg-green-100 px-2 py-0.5 border border-green-500 text-green-700 text-[8px] font-mono font-bold rounded-lg shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Supabase OK
-            </span>
-          ) : connectionStatus === 'connecting' ? (
-            <span className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 border border-yellow-500 text-yellow-700 text-[8px] font-mono font-bold rounded-lg shadow-sm animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Conectando...
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 bg-red-100 px-2 py-0.5 border border-red-500 text-red-700 text-[8px] font-mono font-bold rounded-lg shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Desconectado
-            </span>
-          )}
-          
-          <button
-            onClick={() => setIsLogsOpen(true)}
-            className="px-2 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 font-mono text-[8px] uppercase font-bold rounded-lg active:scale-95 transition-all shadow-sm"
-          >
-            🐞 Logs
-          </button>
-        </div>
-
         <div className="flex-1 flex flex-col justify-stretch">
           {content}
         </div>
-
-        <DebugLogsDrawer
-          logs={debugLogs}
-          isOpen={isLogsOpen}
-          onClose={() => setIsLogsOpen(false)}
-          onClear={clearLogs}
-        />
       </div>
     );
   };
@@ -240,18 +203,15 @@ export default function PlayerView({ sync }) {
           
           <div className="text-center mb-6 pt-2">
             <h1 className="text-2xl font-black uppercase tracking-wider text-blue-500 font-mono">
-              ¡ENTRAR A LA ARENA!
+              ✅ Modo Jugador
             </h1>
-            <p className="text-xs text-slate-450 mt-1 uppercase tracking-widest font-mono font-bold">
-              Consola del Jugador
-            </p>
           </div>
 
           <form onSubmit={handleJoin} className="space-y-4">
             {/* PIN de la sala */}
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1 font-mono text-center">
-                PIN del Juego
+                PIN de partida
               </label>
               <input
                 type="text"
@@ -266,7 +226,7 @@ export default function PlayerView({ sync }) {
             {/* Apodo */}
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1 font-mono text-center">
-                Tu Apodo de Juego
+                Nombre
               </label>
               <input
                 type="text"
@@ -306,7 +266,7 @@ export default function PlayerView({ sync }) {
               type="submit"
               className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all font-mono"
             >
-              ¡Unirme a la Batalla!
+              Unirse
             </button>
           </form>
           
@@ -317,7 +277,7 @@ export default function PlayerView({ sync }) {
           </div>
         </div>
       </div>
-  );
+    );
   }
 
   // 2. PANTALLA DE LOBBY (ESPERANDO AL HOST)
