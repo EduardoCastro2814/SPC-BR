@@ -275,9 +275,19 @@ export function useGameSync(isHost, customPin = null) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost, playerId, addLog]);
 
-  // --- LÓGICA DE SUSCRIPCIONES (HOST) ---
   const subscribeHostEvents = (gId) => {
     addLog('[HOST] Configurando suscripciones de Base de Datos...');
+
+    if (!supabase) {
+      console.error("[GameSync] Supabase client is null inside subscribeHostEvents");
+      return;
+    }
+
+    // Limpiar canales previos para evitar "cannot add 'postgres_changes' callbacks after subscribe()"
+    const oldPlayersChannel = supabase.channel(`host_players_${gId}`);
+    supabase.removeChannel(oldPlayersChannel);
+    const oldAnswersChannel = supabase.channel(`host_answers_${gId}`);
+    supabase.removeChannel(oldAnswersChannel);
 
     // Escuchar tabla de jugadores conectándose o actualizando estado
     const playersChannel = supabase.channel(`host_players_${gId}`)
@@ -356,6 +366,17 @@ export function useGameSync(isHost, customPin = null) {
   // --- LÓGICA DE SUSCRIPCIONES (JUGADOR) ---
   const subscribePlayerEvents = (gId) => {
     addLog('[PLAYER] Configurando suscripciones al servidor...');
+
+    if (!supabase) {
+      console.error("[GameSync] Supabase client is null inside subscribePlayerEvents");
+      return;
+    }
+
+    // Limpiar canales previos para evitar "cannot add 'postgres_changes' callbacks after subscribe()"
+    const oldGameChannel = supabase.channel(`player_game_${gId}`);
+    supabase.removeChannel(oldGameChannel);
+    const oldPlayersChannel = supabase.channel(`player_players_${gId}`);
+    supabase.removeChannel(oldPlayersChannel);
 
     // Escuchar cambios en la partida activa
     const gameChannel = supabase.channel(`player_game_${gId}`)

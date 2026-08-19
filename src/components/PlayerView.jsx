@@ -151,6 +151,7 @@ export default function PlayerView({ sync, forceLogin }) {
     myScore,
     myStreak,
     myRank,
+    playerName,
     joinGame,
     submitAnswer,
     joinError,
