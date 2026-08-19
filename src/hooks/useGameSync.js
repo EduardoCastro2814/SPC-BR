@@ -86,6 +86,13 @@ export function useGameSync(isHost, customPin = null) {
     setConnectionStatus('connecting');
     addLog('[SYSTEM] Conectando a Supabase...');
     
+    if (!supabase) {
+      console.error("[GameSync] Supabase client is null inside basic connection validation");
+      setConnectionStatus('disconnected');
+      addLog('[ERROR] Error de conexión: Cliente Supabase no inicializado');
+      return;
+    }
+
     // Verificar conectividad simple
     supabase.from('games').select('count', { count: 'exact', head: true })
       .then(({ error }) => {
@@ -189,43 +196,76 @@ export function useGameSync(isHost, customPin = null) {
           const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (!uuidRegex.test(playerId)) {
             console.warn('[useGameSync] playerId guardado no es un UUID válido:', playerId);
+            localStorage.removeItem('spc_player_id');
+            sessionStorage.removeItem('spc_player_game_id');
+            sessionStorage.removeItem('spc_player_name');
+            setPlayerId('');
+            setPlayerName('');
+            setJoined(false);
+            setGameState('LOBBY');
             return;
           }
+          
+          if (!supabase) {
+            console.error('[GameSync] Supabase client is null inside resumeSession');
+            return;
+          }
+          
           addLog(`[PLAYER] Intentando reanudar conexión a partida: ${savedPlayerGameId}`);
           const { data: game, error } = await supabase.from('games').select('*').eq('id', savedPlayerGameId).maybeSingle();
           console.log("[GameSync] Game record fetched from Supabase (resumeSession):", game);
-          if (game && !error) {
-            // Verificar si el jugador existe en la base de datos
-            const { data: player } = await supabase.from('players').select('*').eq('id', playerId).eq('game_id', game.id).maybeSingle();
-            if (player) {
-              gameIdRef.current = game.id;
-              setPin(game.pin);
-              setGameState(game.game_state);
-              setCurrentQuestionIndex(game.current_question_index);
-              setQuestionStartedAt(game.question_started_at);
-              setPlayerName(player.nickname);
-              setJoined(true);
-              setMyScore(player.score);
-              setMyStreak(player.streak);
-              setMyRank(player.rank);
+          
+          if (!game || error) {
+            console.warn('[useGameSync] La partida guardada ya no existe en el servidor. Limpiando sesión...');
+            localStorage.removeItem('spc_player_id');
+            sessionStorage.removeItem('spc_player_game_id');
+            sessionStorage.removeItem('spc_player_name');
+            setPlayerId('');
+            setPlayerName('');
+            setJoined(false);
+            setGameState('LOBBY');
+            return;
+          }
 
-              // Cargar todas las respuestas de la pregunta actual para ver si ya respondimos
-              const { data: myAns } = await supabase.from('answers')
-                .select('*')
-                .eq('game_id', game.id)
-                .eq('player_id', playerId)
-                .eq('question_index', game.current_question_index)
-                .maybeSingle();
+          // Verificar si el jugador existe en la base de datos
+          const { data: player, error: pError } = await supabase.from('players').select('*').eq('id', playerId).eq('game_id', game.id).maybeSingle();
+          if (player && !pError) {
+            gameIdRef.current = game.id;
+            setPin(game.pin);
+            setGameState(game.game_state);
+            setCurrentQuestionIndex(game.current_question_index);
+            setQuestionStartedAt(game.question_started_at);
+            setPlayerName(player.nickname);
+            setJoined(true);
+            setMyScore(player.score);
+            setMyStreak(player.streak);
+            setMyRank(player.rank);
 
-              if (myAns) {
-                setHasAnswered(true);
-                setMyLastAnswerCorrect(myAns.is_correct);
-                setPointsEarnedThisRound(myAns.points);
-              }
+            // Cargar todas las respuestas de la pregunta actual para ver si ya respondimos
+            const { data: myAns } = await supabase.from('answers')
+              .select('*')
+              .eq('game_id', game.id)
+              .eq('player_id', playerId)
+              .eq('question_index', game.current_question_index)
+              .maybeSingle();
 
-              addLog(`[PLAYER] Conexión reanudada como ${player.nickname} en el PIN ${game.pin}`);
-              subscribePlayerEvents(game.id);
+            if (myAns) {
+              setHasAnswered(true);
+              setMyLastAnswerCorrect(myAns.is_correct);
+              setPointsEarnedThisRound(myAns.points);
             }
+
+            addLog(`[PLAYER] Conexión reanudada como ${player.nickname} en el PIN ${game.pin}`);
+            subscribePlayerEvents(game.id);
+          } else {
+            console.warn('[useGameSync] El jugador guardado no existe en esta partida o hubo error. Limpiando sesión...');
+            localStorage.removeItem('spc_player_id');
+            sessionStorage.removeItem('spc_player_game_id');
+            sessionStorage.removeItem('spc_player_name');
+            setPlayerId('');
+            setPlayerName('');
+            setJoined(false);
+            setGameState('LOBBY');
           }
         }
       }
@@ -726,6 +766,14 @@ export function useGameSync(isHost, customPin = null) {
     setJoinError('');
     addLog(`[PLAYER] Buscando partida con PIN: ${targetPin}...`);
     console.log("[GameSync] Game lookup - Buscando partida con PIN:", targetPin);
+    console.log("[GameSync] Evento: Iniciando petición de unión de juego (Join Game Request)");
+
+    if (!supabase) {
+      console.error("[GameSync] Supabase client is null inside joinGame");
+      setJoinError('Error: Cliente Supabase no inicializado');
+      alert('Error: Cliente Supabase no inicializado');
+      return;
+    }
 
     // 1. Validar si la partida existe
     const { data: game, error } = await supabase.from('games')
@@ -845,6 +893,12 @@ export function useGameSync(isHost, customPin = null) {
 
   const submitAnswer = useCallback(async (optionIndex) => {
     if (isHost || hasAnswered || !gameIdRef.current || !questionStartedAt) return;
+    
+    if (!supabase) {
+      console.error("[GameSync] Supabase client is null inside submitAnswer");
+      return;
+    }
+    
     addLog(`[PLAYER] Enviando respuesta seleccionada: ${optionIndex}`);
 
     // Calcular el tiempo transcurrido en segundos
@@ -898,6 +952,26 @@ export function useGameSync(isHost, customPin = null) {
     setJoinError('');
   }, []);
 
+  const leaveSession = useCallback(() => {
+    addLog('[PLAYER] Saliendo de la partida y cerrando sesión...');
+    localStorage.removeItem('spc_player_id');
+    sessionStorage.removeItem('spc_player_game_id');
+    sessionStorage.removeItem('spc_player_name');
+    
+    // Limpiar avatares cacheados
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const key = sessionStorage.key(i);
+      if (key && (key.startsWith('avatar_') || key.startsWith('spc_player_'))) {
+        sessionStorage.removeItem(key);
+      }
+    }
+
+    setPlayerId('');
+    setPlayerName('');
+    setJoined(false);
+    setGameState('LOBBY');
+  }, [addLog]);
+
   return {
     // Estado común
     pin,
@@ -936,6 +1010,7 @@ export function useGameSync(isHost, customPin = null) {
 
     // Acciones del Jugador
     joinGame,
-    submitAnswer
+    submitAnswer,
+    leaveSession
   };
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, ShieldAlert, HelpCircle } from 'lucide-react';
+import { isSupabaseConfigured } from '../services/supabase';
 
 // --- CUTE CARTOON SVG AVATARS ---
 export function AvatarSVG({ type, size = 64 }) {
@@ -137,7 +138,7 @@ function ConfettiEffect() {
   );
 }
 
-export default function PlayerView({ sync }) {
+export default function PlayerView({ sync, forceLogin }) {
   const {
     pin,
     gameState,
@@ -153,12 +154,36 @@ export default function PlayerView({ sync }) {
     joinGame,
     submitAnswer,
     joinError,
-    clearJoinError
+    clearJoinError,
+    leaveSession
   } = sync;
 
   const [inputPin, setInputPin] = useState('');
   const [inputName, setInputName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('');
+  const [showExitMenu, setShowExitMenu] = useState(false);
+
+  React.useEffect(() => {
+    console.log("[PlayerView] Player route loading - Cargando panel del jugador (Player route loading)...");
+    if (forceLogin && leaveSession) {
+      leaveSession();
+    }
+  }, [forceLogin, leaveSession]);
+
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="p-6 text-center text-rose-600 font-mono space-y-4">
+        <div className="text-4xl">❌</div>
+        <h2 className="text-sm font-black uppercase">Error de Conexión</h2>
+        <p className="text-[11px] text-slate-655 font-bold leading-relaxed px-2">
+          Error: Cliente Supabase no inicializado
+        </p>
+        <p className="text-[10px] text-slate-400">
+          Por favor verifica las variables de entorno o la configuración de tu red.
+        </p>
+      </div>
+    );
+  }
 
   const wrap = (content) => {
     return (
@@ -166,6 +191,75 @@ export default function PlayerView({ sync }) {
         <div className="flex-1 flex flex-col justify-stretch">
           {content}
         </div>
+        
+        {/* Barra de utilidades inferior */}
+        <div className="border-t border-slate-100 bg-slate-50/80 px-4 py-2.5 flex justify-between items-center text-[10px] font-mono text-slate-500 w-full select-none">
+          <span className="font-bold">Sala PIN: {pin}</span>
+          <button
+            onClick={() => setShowExitMenu(true)}
+            className="text-red-500 hover:text-red-655 font-black uppercase tracking-wider transition-all active:scale-95 px-2.5 py-1 rounded-xl bg-red-50 border border-red-100"
+          >
+            ⚙️ Salir / Opciones
+          </button>
+        </div>
+
+        {/* Modal de Opciones de Salida */}
+        {showExitMenu && (
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex flex-col justify-end transition-all animate-fadeIn">
+            <div className="bg-white rounded-t-3xl border-t-4 border-blue-500 p-5 space-y-4 shadow-2xl animate-slideUp">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 font-mono">
+                  Opciones de Operador
+                </h4>
+                <button
+                  onClick={() => setShowExitMenu(false)}
+                  className="text-slate-400 hover:text-slate-650 font-black font-mono text-base px-2 py-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                <button
+                  onClick={() => {
+                    setShowExitMenu(false);
+                    if (leaveSession) leaveSession();
+                  }}
+                  className="w-full py-3 bg-rose-50 hover:bg-rose-100 border-2 border-rose-200 text-rose-655 font-black uppercase text-xs rounded-2xl transition-all active:scale-95 font-mono tracking-wider"
+                >
+                  🚪 Salir de partida
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExitMenu(false);
+                    if (leaveSession) leaveSession();
+                  }}
+                  className="w-full py-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-150 text-blue-600 font-black uppercase text-xs rounded-2xl transition-all active:scale-95 font-mono tracking-wider"
+                >
+                  👤 Cambiar jugador
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExitMenu(false);
+                    if (leaveSession) leaveSession();
+                  }}
+                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 border-2 border-slate-350 text-slate-700 font-black uppercase text-xs rounded-2xl transition-all active:scale-95 font-mono tracking-wider"
+                >
+                  🔑 Cerrar sesión
+                </button>
+              </div>
+
+              <div className="text-center pt-2">
+                <button
+                  onClick={() => setShowExitMenu(false)}
+                  className="text-[10px] text-slate-400 font-black uppercase tracking-wider font-mono hover:text-slate-600"
+                >
+                  Volver al Juego
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -370,6 +464,30 @@ export default function PlayerView({ sync }) {
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce"></span>
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0.15s' }}></span>
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+          </div>
+        </div>
+
+        {/* Stack de Botones de Salida Directa en Lobby */}
+        <div className="w-full max-w-xs mb-6 space-y-2">
+          <button
+            onClick={() => leaveSession && leaveSession()}
+            className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 border-2 border-rose-200 text-rose-655 font-black uppercase text-[10px] rounded-2xl transition-all active:scale-95 font-mono tracking-wider"
+          >
+            🚪 Salir de partida
+          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => leaveSession && leaveSession()}
+              className="py-2 bg-blue-50 hover:bg-blue-100 border-2 border-blue-150 text-blue-600 font-black uppercase text-[9px] rounded-2xl transition-all active:scale-95 font-mono tracking-wider"
+            >
+              👤 Cambiar jugador
+            </button>
+            <button
+              onClick={() => leaveSession && leaveSession()}
+              className="py-2 bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-655 font-black uppercase text-[9px] rounded-2xl transition-all active:scale-95 font-mono tracking-wider"
+            >
+              🔑 Cerrar sesión
+            </button>
           </div>
         </div>
       </div>

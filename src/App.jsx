@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-d
 import HostView from './components/HostView';
 import PlayerView from './components/PlayerView';
 import { useGameSync } from './hooks/useGameSync';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Trophy, Award, Users, BarChart3, ArrowLeft } from 'lucide-react';
 import { supabase } from './services/supabase';
 
@@ -298,8 +299,33 @@ function AppContent({ startupConnStatus, setStartupConnStatus }) {
                   Menú Principal
                 </button>
               </div>
-              <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col">
-                <PlayerView sync={standalonePlayerSync} />
+              <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col p-4">
+                <ErrorBoundary>
+                  <PlayerView sync={standalonePlayerSync} />
+                </ErrorBoundary>
+              </div>
+            </div>
+          } 
+        />
+
+        {/* Ruta de Jugador (Forzado a Login) */}
+        <Route 
+          path="/player/login" 
+          element={
+            <div className="min-h-screen bg-blue-50/20 p-4 flex flex-col justify-center items-center font-sans w-full">
+              <div className="w-full max-w-sm mb-4">
+                <button
+                  onClick={() => navigate('/')}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-500 font-mono font-black text-xs uppercase rounded-2xl active:scale-95 transition-all shadow-sm"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Menú Principal
+                </button>
+              </div>
+              <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col p-4">
+                <ErrorBoundary>
+                  <PlayerView sync={standalonePlayerSync} forceLogin={true} />
+                </ErrorBoundary>
               </div>
             </div>
           } 

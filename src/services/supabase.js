@@ -12,6 +12,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export let supabase = null;
 
+console.log('[Supabase] Inicializando Supabase (Supabase initialization)...');
+
 if (supabaseUrl && supabaseAnonKey) {
   try {
     supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -19,6 +21,7 @@ if (supabaseUrl && supabaseAnonKey) {
         persistSession: false // No necesitamos autenticación de usuarios para este juego casual
       }
     });
+    console.log('[Supabase] Cliente creado exitosamente (Client creation)...');
     console.log('[Supabase] Cliente inicializado correctamente.');
   } catch (error) {
     console.error('[Supabase] Error al inicializar el cliente:', error);
