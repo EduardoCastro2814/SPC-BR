@@ -151,12 +151,14 @@ export default function PlayerView({ sync }) {
     myStreak,
     myRank,
     joinGame,
-    submitAnswer
+    submitAnswer,
+    joinError,
+    clearJoinError
   } = sync;
 
   const [inputPin, setInputPin] = useState('');
   const [inputName, setInputName] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState('engineer');
+  const [selectedAvatar, setSelectedAvatar] = useState('');
 
   const wrap = (content) => {
     return (
@@ -170,12 +172,31 @@ export default function PlayerView({ sync }) {
 
   const handleJoin = (e) => {
     e.preventDefault();
-    if (!inputPin.trim() || !inputName.trim()) {
-      alert('¡Por favor introduce el PIN y tu Apodo!');
+    console.log("Join pressed");
+    console.log("Validando PIN:", inputPin);
+    console.log("Validando Nombre:", inputName);
+    console.log("Avatar seleccionado:", selectedAvatar);
+
+    if (!inputPin.trim()) {
+      console.log("Validación fallida: PIN vacío");
       return;
     }
+    if (inputPin.trim().length !== 6) {
+      console.log("Validación fallida: PIN inválido (debe tener 6 dígitos)");
+      return;
+    }
+    if (!inputName.trim()) {
+      console.log("Validación fallida: Nombre vacío");
+      return;
+    }
+    if (!selectedAvatar) {
+      console.log("Validación fallida: Avatar no seleccionado");
+      return;
+    }
+
     // Guardar avatar elegido en almacenamiento de sesión para que el host pueda sincronizarlo
     sessionStorage.setItem(`avatar_${inputName.trim().toLowerCase()}`, selectedAvatar);
+    console.log("Enviando petición de unión de juego al hook...");
     joinGame(inputPin.trim(), inputName.trim());
   };
 
@@ -193,6 +214,8 @@ export default function PlayerView({ sync }) {
     { index: 3, color: 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-200 text-white', icon: SquareIcon, label: 'Opción D' }
   ];
 
+  const isBtnDisabled = !inputPin.trim() || !inputName.trim() || !selectedAvatar;
+
   // 1. PANTALLA DE INGRESO (CON SELECTOR DE AVATARES)
   if (!joined) {
     return wrap(
@@ -207,6 +230,13 @@ export default function PlayerView({ sync }) {
             </h1>
           </div>
 
+          {/* Mostrar error de servidor si existe */}
+          {joinError && (
+            <div className="p-3 bg-rose-50 border border-rose-150 text-rose-600 font-mono font-bold text-xs rounded-2xl text-center mb-4">
+              ❌ {joinError}
+            </div>
+          )}
+
           <form onSubmit={handleJoin} className="space-y-4">
             {/* PIN de la sala */}
             <div>
@@ -218,7 +248,10 @@ export default function PlayerView({ sync }) {
                 maxLength="6"
                 placeholder="000000"
                 value={inputPin}
-                onChange={(e) => setInputPin(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => {
+                  setInputPin(e.target.value.replace(/\D/g, ''));
+                  if (clearJoinError) clearJoinError();
+                }}
                 className="w-full px-4 py-2.5 bg-gray-50 border-3 border-gray-100 text-slate-800 rounded-2xl text-center text-xl font-black tracking-widest focus:outline-none"
               />
             </div>
@@ -233,7 +266,10 @@ export default function PlayerView({ sync }) {
                 maxLength="12"
                 placeholder="Ej. SuperCalidad"
                 value={inputName}
-                onChange={(e) => setInputName(e.target.value)}
+                onChange={(e) => {
+                  setInputName(e.target.value);
+                  if (clearJoinError) clearJoinError();
+                }}
                 className="w-full px-4 py-2.5 bg-gray-50 border-3 border-gray-100 text-slate-800 rounded-2xl text-center text-base font-bold focus:outline-none"
               />
             </div>
@@ -248,12 +284,18 @@ export default function PlayerView({ sync }) {
                   <button
                     key={avatar}
                     type="button"
-                    onClick={() => setSelectedAvatar(avatar)}
-                    className={`p-1.5 rounded-xl transition-all ${
-                      selectedAvatar === avatar 
-                        ? 'bg-blue-500/20 border-2 border-blue-500 scale-110' 
-                        : 'border-2 border-transparent hover:scale-105'
-                    }`}
+                    onClick={() => {
+                      console.log("Avatar seleccionado:", avatar);
+                      setSelectedAvatar(avatar);
+                      if (clearJoinError) clearJoinError();
+                    }}
+                    style={{
+                      transform: selectedAvatar === avatar ? 'scale(1.15)' : 'scale(1)',
+                      border: selectedAvatar === avatar ? '3px solid var(--primary-blue)' : '3px solid transparent',
+                      backgroundColor: selectedAvatar === avatar ? 'rgba(0, 174, 239, 0.15)' : 'transparent',
+                      transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }}
+                    className="p-1.5 rounded-xl"
                   >
                     <AvatarSVG type={avatar} size={36} />
                   </button>
@@ -264,11 +306,26 @@ export default function PlayerView({ sync }) {
             {/* Botón Jugar */}
             <button
               type="submit"
-              className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all font-mono"
+              disabled={isBtnDisabled}
+              className={`w-full py-4 text-white font-black uppercase tracking-wider rounded-2xl shadow-lg transition-all font-mono ${
+                isBtnDisabled 
+                  ? 'bg-slate-300 shadow-none cursor-not-allowed opacity-75' 
+                  : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20 active:scale-95'
+              }`}
             >
               Unirse
             </button>
           </form>
+
+          {/* Mostrar razones si el botón de unión está bloqueado */}
+          {isBtnDisabled && (
+            <div className="text-[10px] text-rose-500 font-mono font-bold text-center mt-3 space-y-1">
+              {!inputPin.trim() && <div>❌ PIN de partida vacío.</div>}
+              {inputPin.trim() && inputPin.trim().length !== 6 && <div>❌ El PIN debe tener 6 dígitos.</div>}
+              {!inputName.trim() && <div>❌ Nombre vacío.</div>}
+              {!selectedAvatar && <div>❌ Debes seleccionar un avatar.</div>}
+            </div>
+          )}
           
           <div className="mt-5 text-center">
             <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider font-bold">

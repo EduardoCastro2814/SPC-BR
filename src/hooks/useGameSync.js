@@ -35,6 +35,7 @@ export function useGameSync(isHost, customPin = null) {
   // --- ESTADO DE CONEXIÓN Y DEPURACIÓN ---
   const [connectionStatus, setConnectionStatus] = useState('disconnected'); // disconnected, connecting, connected
   const [debugLogs, setDebugLogs] = useState([]);
+  const [joinError, setJoinError] = useState('');
 
   // --- REFERENCIAS PARA HACER SEGUIMIENTO DE VARIABLES DENTRO DE LISTENERS ---
   const gameIdRef = useRef(null);
@@ -684,10 +685,11 @@ export function useGameSync(isHost, customPin = null) {
     }
   }, [isHost, addLog]);
 
-  // --- ACCIONES DEL JUGADOR (PLAYER) ---
   const joinGame = useCallback(async (targetPin, name) => {
     if (isHost) return;
+    setJoinError('');
     addLog(`[PLAYER] Buscando partida con PIN: ${targetPin}...`);
+    console.log("[GameSync] Game lookup - Buscando partida con PIN:", targetPin);
 
     // 1. Validar si la partida existe
     const { data: game, error } = await supabase.from('games')
@@ -697,6 +699,8 @@ export function useGameSync(isHost, customPin = null) {
 
     if (error) {
       addLog(`[ERROR] Error al buscar partida en DB: ${error.message}`);
+      console.error("[GameSync] Error en lookup de partida:", error.message);
+      setJoinError('Error al buscar partida en el servidor.');
       alert(`Error al buscar la partida en el servidor.\n\n` +
             `Table: games\n\n` +
             `Payload:\n{\n  pin: "${targetPin}"\n}\n\n` +
@@ -706,12 +710,15 @@ export function useGameSync(isHost, customPin = null) {
 
     if (!game) {
       addLog(`[ERROR] No se encontró la partida con PIN: ${targetPin}`);
+      console.log("[GameSync] Partida no encontrada con PIN:", targetPin);
+      setJoinError('No existe una partida con ese PIN.');
       alert('No se encontró ninguna partida con ese PIN. Verifica el código e intenta de nuevo.');
       return;
     }
 
     if (game.game_state !== 'LOBBY') {
       addLog(`[WARN] La partida con PIN ${targetPin} ya comenzó (Estado: ${game.game_state})`);
+      setJoinError('La partida ya ha comenzado.');
       alert('La partida ya ha comenzado y no se permiten nuevos ingresos.');
       return;
     }
@@ -725,6 +732,8 @@ export function useGameSync(isHost, customPin = null) {
 
     if (existError) {
       addLog(`[ERROR] Error al verificar apodo en DB: ${existError.message}`);
+      console.error("[GameSync] Error al verificar apodo en DB:", existError.message);
+      setJoinError('Error de red al verificar apodo.');
       alert(`Error al verificar apodo en el servidor.\n\n` +
             `Table: players\n\n` +
             `Payload:\n{\n  game_id: "${game.id}",\n  name: "${name.trim()}"\n}\n\n` +
@@ -738,6 +747,7 @@ export function useGameSync(isHost, customPin = null) {
         addLog(`[PLAYER] Reconexión permitida al mismo apodo: ${name}`);
       } else {
         addLog(`[WARN] El apodo ${name} ya está en uso por otro dispositivo`);
+        setJoinError('Ese apodo ya está en uso en esta partida. Por favor elige otro.');
         alert('Ese apodo ya está en uso en esta partida. Por favor elige otro.');
         return;
       }
@@ -760,16 +770,21 @@ export function useGameSync(isHost, customPin = null) {
     };
 
     addLog(`[PLAYER] Registrando jugador en la base de datos: ${name}`);
+    console.log("[GameSync] Player creation - Registrando jugador en Supabase:", playerData);
     const { error: pError } = await supabase.from('players').upsert(playerData);
     
     if (pError) {
       addLog(`[ERROR] Error al registrar jugador en DB: ${pError.message}`);
+      console.error("[GameSync] Error al registrar jugador en DB:", pError.message);
+      setJoinError('Error de conexión al unirse al servidor.');
       alert(`Error al unirse al juego en el servidor.\n\n` +
             `Table: players\n\n` +
             `Payload:\n{\n  nickname: "${name.trim()}",\n  avatar: "${selectedAvatar}",\n  game_id: "${game.id}"\n}\n\n` +
             `Error:\n${pError.message}`);
       return;
     }
+
+    console.log("[GameSync] Jugador registrado con éxito en Supabase.");
 
     // Actualizar estados
     gameIdRef.current = game.id;
@@ -789,7 +804,7 @@ export function useGameSync(isHost, customPin = null) {
     // Configurar suscripciones del jugador
     subscribePlayerEvents(game.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHost, playerId, addLog]);
+  }, [isHost, playerId, addLog, setJoinError]);
 
   const submitAnswer = useCallback(async (optionIndex) => {
     if (isHost || hasAnswered || !gameIdRef.current || !questionStartedAt) return;
@@ -842,6 +857,10 @@ export function useGameSync(isHost, customPin = null) {
     setDebugLogs([]);
   }, []);
 
+  const clearJoinError = useCallback(() => {
+    setJoinError('');
+  }, []);
+
   return {
     // Estado común
     pin,
@@ -867,6 +886,8 @@ export function useGameSync(isHost, customPin = null) {
     debugLogs,
     clearLogs,
     addLog,
+    joinError,
+    clearJoinError,
 
     // Acciones del Host
     startLobby,
