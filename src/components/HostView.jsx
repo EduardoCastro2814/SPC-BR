@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import questionsData from '../data/questions.json';
 import ControlChartVisualizer from './ControlChartVisualizer';
 import { AvatarSVG } from './PlayerView';
-import { Users, Play, Plus, ArrowRight, Award, HelpCircle, Volume2, VolumeX, Tv, Flame } from 'lucide-react';
-import { soundManager } from '../services/sound';
+import { Users, Play, Plus, ArrowRight, Award, HelpCircle, Volume2, VolumeX, Flame, Trophy } from 'lucide-react';
+import DebugLogsDrawer from './DebugLogsDrawer';
 
 export default function HostView({ sync, isMuted, onToggleMute }) {
+  const [isLogsOpen, setIsLogsOpen] = useState(false);
+
   const {
     pin,
     gameState,
@@ -17,11 +19,52 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
     addBotPlayer,
     startQuestion,
     showLeaderboard,
-    nextQuestion
+    nextQuestion,
+    connectionStatus,
+    debugLogs,
+    clearLogs
   } = sync;
 
   const currentQuestion = questionsData[currentQuestionIndex];
   const totalQuestions = questionsData.length;
+
+  const wrap = (content) => {
+    return (
+      <div className="relative flex-1 flex flex-col min-h-500">
+        {content}
+        
+        {/* Floating Debug Status Badge & Debug Log Drawer Button */}
+        <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2 pointer-events-auto">
+          {connectionStatus === 'connected' ? (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 border border-green-500 text-green-700 text-[10px] font-mono font-bold rounded-xl shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span> Supabase Conectado
+            </span>
+          ) : connectionStatus === 'connecting' ? (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 border border-yellow-500 text-amber-700 text-[10px] font-mono font-bold rounded-xl shadow-sm animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-yellow-500"></span> Conectando...
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 border border-red-500 text-red-700 text-[10px] font-mono font-bold rounded-xl shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span> Desconectado
+            </span>
+          )}
+          <button
+            onClick={() => setIsLogsOpen(true)}
+            className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-650 font-mono text-[10px] uppercase font-bold rounded-xl shadow-sm flex items-center gap-1 active:scale-95 transition-all"
+          >
+            🐞 Depurar
+          </button>
+        </div>
+
+        <DebugLogsDrawer
+          logs={debugLogs}
+          isOpen={isLogsOpen}
+          onClose={() => setIsLogsOpen(false)}
+          onClear={clearLogs}
+        />
+      </div>
+    );
+  };
 
   const botNames = [
     'Inspector_Rob',
@@ -101,7 +144,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
 
   // 1. PANTALLA DE LOBBY DEL INSTRUCTOR
   if (gameState === 'LOBBY') {
-    return (
+    return wrap(
       <div className="flex flex-col justify-between min-h-500 bg-white text-slate-800 p-6 font-sans relative overflow-hidden">
         {/* Decoraciones de burbujas flotantes de fondo */}
         <div className="absolute top-10 left-10 w-24 h-24 bg-blue-100/40 rounded-full blur-xl animate-float" />
@@ -211,12 +254,12 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           </button>
         </div>
       </div>
-    );
+  );
   }
 
   // 2. PANTALLA DE INTRO DE PREGUNTA
   if (gameState === 'INTRO') {
-    return (
+    return wrap(
       <div className="flex flex-col justify-center items-center min-h-500 bg-white text-slate-800 p-8 font-sans text-center relative overflow-hidden">
         {/* Nubes decorativas */}
         <div className="absolute top-10 left-10 w-28 h-10 bg-blue-50 rounded-full blur-sm animate-float" />
@@ -251,12 +294,12 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           </p>
         </div>
       </div>
-    );
+  );
   }
 
   // 3. PREGUNTA EN CURSO (PANTALLA DE JUEGO)
   if (gameState === 'QUESTION') {
-    return (
+    return wrap(
       <div className="flex flex-col justify-between min-h-500 bg-white text-slate-800 p-6 font-sans">
         {/* Cabecera */}
         <div className="flex justify-between items-center border-b border-blue-50 pb-3">
@@ -344,14 +387,14 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           <span className="uppercase tracking-widest">SPC Battle Arena Game</span>
         </div>
       </div>
-    );
+  );
   }
 
   // 4. REVELACIÓN DE RESPUESTA
   if (gameState === 'REVEAL') {
     const correctOptionIdx = currentQuestion.answer;
     
-    return (
+    return wrap(
       <div className="flex flex-col justify-between min-h-500 bg-white text-slate-800 p-6 font-sans relative overflow-hidden">
         <HostConfetti />
         
@@ -466,14 +509,14 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           </button>
         </div>
       </div>
-    );
+  );
   }
 
   // 5. TABLA DE POSICIONES INTERMEDIA (SCOREBOARD VIDEOJUEGO)
   if (gameState === 'LEADERBOARD') {
     const topPlayers = [...players].sort((a, b) => b.score - a.score).slice(0, 5);
     
-    return (
+    return wrap(
       <div className="flex flex-col justify-between min-h-500 bg-white text-slate-800 p-6 font-sans relative overflow-hidden">
         {/* Nubes y estrellas flotantes de fondo */}
         <div className="absolute top-10 right-10 w-24 h-24 bg-yellow-100/30 rounded-full blur-xl animate-float" />
@@ -568,7 +611,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           </button>
         </div>
       </div>
-    );
+  );
   }
 
   // 6. PODIO FINAL CON AVATARES FLOAT
@@ -578,7 +621,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
     const second = sorted[1];
     const third = sorted[2];
 
-    return (
+    return wrap(
       <div className="flex flex-col justify-between min-h-500 bg-white text-slate-800 p-6 font-sans relative overflow-hidden">
         <HostConfetti />
         
@@ -682,10 +725,10 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           </button>
         </div>
       </div>
-    );
+  );
   }
 
-  return <div>Estado desconocido: {gameState}</div>;
+  return wrap(<div>Estado desconocido: {gameState}</div>);
 }
 
 // Retornar letra de opción

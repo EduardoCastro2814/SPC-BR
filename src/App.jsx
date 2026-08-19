@@ -3,7 +3,9 @@ import DashboardView from './components/DashboardView';
 import HostView from './components/HostView';
 import PlayerView from './components/PlayerView';
 import { useGameSync } from './hooks/useGameSync';
-import { Trophy, Award, BookOpen, Users, Smartphone, BarChart3, HelpCircle, ArrowLeft } from 'lucide-react';
+import { Trophy, Award, Users, BarChart3, ArrowLeft } from 'lucide-react';
+import { isSupabaseConfigured, clearSupabaseConfig } from './services/supabase';
+import SupabaseConfigView from './components/SupabaseConfigView';
 
 // --- CUTE CARTOON SVG ILLUSTRATIONS FOR CARDS ---
 function ControllerIllustration() {
@@ -109,6 +111,10 @@ export default function App() {
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
   };
+
+  if (!isSupabaseConfigured()) {
+    return <SupabaseConfigView />;
+  }
 
   if (viewMode === 'SANDBOX') {
     return <DashboardView onExit={() => setViewMode('ROUTER')} />;
@@ -369,6 +375,19 @@ export default function App() {
           </div>
           <div className="text-[10px] text-slate-500">
             © SPC Battle Arena
+          </div>
+          <div className="pt-2 flex justify-center items-center gap-2 text-[10px] text-slate-400">
+            <span className="text-emerald-500 font-black">●</span> Servidor Supabase Conectado
+            <button
+              onClick={() => {
+                if (window.confirm('¿Deseas desconectar o cambiar la base de datos de Supabase?')) {
+                  clearSupabaseConfig();
+                }
+              }}
+              className="text-blue-500 hover:text-blue-600 underline font-bold transition-all ml-1"
+            >
+              Cambiar Configuración
+            </button>
           </div>
         </div>
       </footer>

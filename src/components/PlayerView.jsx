@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Award, Zap, ShieldAlert, Settings, HelpCircle, Trophy } from 'lucide-react';
+import { Zap, ShieldAlert, HelpCircle } from 'lucide-react';
+import DebugLogsDrawer from './DebugLogsDrawer';
 
 // --- CUTE CARTOON SVG AVATARS ---
 export function AvatarSVG({ type, size = 64 }) {
@@ -138,10 +139,11 @@ function ConfettiEffect() {
 }
 
 export default function PlayerView({ sync }) {
+  const [isLogsOpen, setIsLogsOpen] = useState(false);
+
   const {
     pin,
     gameState,
-    players,
     currentQuestionIndex,
     timer,
     joined,
@@ -152,12 +154,56 @@ export default function PlayerView({ sync }) {
     myStreak,
     myRank,
     joinGame,
-    submitAnswer
+    submitAnswer,
+    connectionStatus,
+    debugLogs,
+    clearLogs
   } = sync;
 
   const [inputPin, setInputPin] = useState('');
   const [inputName, setInputName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('engineer');
+
+  const wrap = (content) => {
+    return (
+      <div className="relative flex-1 flex flex-col min-h-500 justify-between">
+        {/* Top connection status and debug bar inside player card */}
+        <div className="bg-slate-50 border-b border-blue-50 px-4 py-2 flex justify-between items-center z-20">
+          {connectionStatus === 'connected' ? (
+            <span className="flex items-center gap-1 bg-green-100 px-2 py-0.5 border border-green-500 text-green-700 text-[8px] font-mono font-bold rounded-lg shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Supabase OK
+            </span>
+          ) : connectionStatus === 'connecting' ? (
+            <span className="flex items-center gap-1 bg-yellow-100 px-2 py-0.5 border border-yellow-500 text-yellow-700 text-[8px] font-mono font-bold rounded-lg shadow-sm animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Conectando...
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 bg-red-100 px-2 py-0.5 border border-red-500 text-red-700 text-[8px] font-mono font-bold rounded-lg shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Desconectado
+            </span>
+          )}
+          
+          <button
+            onClick={() => setIsLogsOpen(true)}
+            className="px-2 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 font-mono text-[8px] uppercase font-bold rounded-lg active:scale-95 transition-all shadow-sm"
+          >
+            🐞 Logs
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col justify-stretch">
+          {content}
+        </div>
+
+        <DebugLogsDrawer
+          logs={debugLogs}
+          isOpen={isLogsOpen}
+          onClose={() => setIsLogsOpen(false)}
+          onClear={clearLogs}
+        />
+      </div>
+    );
+  };
 
   const handleJoin = (e) => {
     e.preventDefault();
@@ -186,7 +232,7 @@ export default function PlayerView({ sync }) {
 
   // 1. PANTALLA DE INGRESO (CON SELECTOR DE AVATARES)
   if (!joined) {
-    return (
+    return wrap(
       <div className="flex flex-col justify-center items-center min-h-500 bg-white text-slate-800 p-6 font-sans">
         <div className="w-full max-w-sm p-6 bg-white border-2 border-blue-100 rounded-3xl shadow-lg relative overflow-hidden">
           {/* Neon/Rainbow Border */}
@@ -209,8 +255,8 @@ export default function PlayerView({ sync }) {
               </label>
               <input
                 type="text"
-                maxLength="4"
-                placeholder="0000"
+                maxLength="6"
+                placeholder="000000"
                 value={inputPin}
                 onChange={(e) => setInputPin(e.target.value.replace(/\D/g, ''))}
                 className="w-full px-4 py-2.5 bg-gray-50 border-3 border-gray-100 text-slate-800 rounded-2xl text-center text-xl font-black tracking-widest focus:outline-none"
@@ -271,12 +317,12 @@ export default function PlayerView({ sync }) {
           </div>
         </div>
       </div>
-    );
+  );
   }
 
   // 2. PANTALLA DE LOBBY (ESPERANDO AL HOST)
   if (gameState === 'LOBBY') {
-    return (
+    return wrap(
       <div className="flex flex-col justify-between items-center min-h-500 bg-white text-slate-800 p-6 font-sans">
         <div className="text-center mt-8 space-y-4">
           <div className="flex justify-center">
@@ -305,12 +351,12 @@ export default function PlayerView({ sync }) {
           </div>
         </div>
       </div>
-    );
+  );
   }
 
   // 3. PANTALLA DE INTRO DE PREGUNTA ("PREPÁRATE")
   if (gameState === 'INTRO') {
-    return (
+    return wrap(
       <div className="flex flex-col justify-center items-center min-h-500 bg-blue-50 text-slate-800 p-6 font-sans text-center">
         <div className="animate-fadeIn space-y-4">
           <div className="flex justify-center mb-2">
@@ -328,13 +374,13 @@ export default function PlayerView({ sync }) {
           </p>
         </div>
       </div>
-    );
+  );
   }
 
   // 4. PANTALLA DE RESPUESTA ACTIVA (PANELES GEOMÉTRICOS)
   if (gameState === 'QUESTION') {
     if (hasAnswered) {
-      return (
+      return wrap(
         <div className="flex flex-col justify-center items-center min-h-500 bg-white text-slate-800 p-6 text-center font-sans">
           <div className="space-y-4 animate-float">
             <div className="flex justify-center">
@@ -352,10 +398,10 @@ export default function PlayerView({ sync }) {
             </div>
           </div>
         </div>
-      );
+    );
     }
 
-    return (
+    return wrap(
       <div className="flex flex-col justify-between min-h-500 bg-blue-50/30 p-4 font-sans text-slate-800">
         {/* Cabecera del jugador */}
         <div className="flex justify-between items-center bg-white border-2 border-blue-50 px-4 py-2 rounded-2xl shadow-sm">
@@ -404,14 +450,14 @@ export default function PlayerView({ sync }) {
           </div>
         )}
       </div>
-    );
+  );
   }
 
   // 5. REVELACIÓN DE RESPUESTA (CON CONFETI Y SHAKE DE CARICATURA)
   if (gameState === 'REVEAL') {
     const isCorrect = myLastAnswerCorrect;
     
-    return (
+    return wrap(
       <div className={`flex flex-col justify-between items-center min-h-500 p-6 font-sans text-white transition-colors duration-300 relative overflow-hidden ${
         isCorrect ? 'bg-green-500 border-t-8 border-green-600 animate-fadeIn' : 'bg-red-500 border-t-8 border-red-650 animate-shake'
       }`}>
@@ -453,12 +499,12 @@ export default function PlayerView({ sync }) {
           )}
         </div>
       </div>
-    );
+  );
   }
 
   // 6. TABLA DE POSICIONES INTERMEDIA
   if (gameState === 'LEADERBOARD') {
-    return (
+    return wrap(
       <div className="flex flex-col justify-between items-center min-h-500 bg-white text-slate-800 p-6 font-sans">
         <div className="text-center mt-10 space-y-2">
           <div className="flex justify-center mb-2">
@@ -478,15 +524,15 @@ export default function PlayerView({ sync }) {
           </div>
         </div>
       </div>
-    );
+  );
   }
 
   // 7. PANTALLA FINAL (PODIO DE GANADORES)
   if (gameState === 'PODIUM') {
     const isWinner = myRank === 1;
     const isTop3 = myRank <= 3;
-
-    return (
+    
+    return wrap(
       <div className="flex flex-col justify-between items-center min-h-500 bg-white text-slate-800 p-6 font-sans text-center relative overflow-hidden">
         {isWinner && <ConfettiEffect />}
         
@@ -516,10 +562,10 @@ export default function PlayerView({ sync }) {
           </p>
         </div>
       </div>
-    );
+  );
   }
 
-  return (
+  return wrap(
     <div className="p-6 text-center text-slate-500 font-mono">
       <HelpCircle className="w-12 h-12 text-slate-300 mx-auto animate-bounce mb-2" />
       <span>Estado desconocido: {gameState}</span>

@@ -40,26 +40,27 @@ function generateChartData(type, violationType, violationPoint, pointsCount, cl,
 }
 
 export default function ControlChartVisualizer({ chartConfig }) {
-  if (!chartConfig) return null;
-  
-  const { type, violationType, violationPoint, pointsCount = 15, cl, ucl, lcl, label = 'Medida' } = chartConfig;
+  const { type, violationType, violationPoint, pointsCount = 15, cl, ucl, lcl, label = 'Medida' } = chartConfig || {};
   
   // Generar puntos del gráfico principal
   const points = useMemo(() => {
+    if (!chartConfig) return [];
     return generateChartData(type, violationType, violationPoint, pointsCount, cl, ucl, lcl);
-  }, [type, violationType, violationPoint, pointsCount, cl, ucl, lcl]);
+  }, [chartConfig, type, violationType, violationPoint, pointsCount, cl, ucl, lcl]);
   
   // Determinar si es un gráfico dual (variables: Xbar-R, Xbar-S, I-MR)
   const isDual = type === 'Xbar-R' || type === 'Xbar-S' || type === 'I-MR';
   
   // Generar puntos del gráfico secundario (Rango o Desviación Estándar) si es dual
   const secondaryPoints = useMemo(() => {
-    if (!isDual) return [];
+    if (!chartConfig || !isDual) return [];
     const sCL = cl * 0.3;
     const sUCL = sCL * 2.2;
     const sLCL = 0;
     return generateChartData(type, 'none', -1, pointsCount, sCL, sUCL, sLCL);
-  }, [isDual, type, pointsCount, cl]);
+  }, [chartConfig, isDual, type, pointsCount, cl]);
+  
+  if (!chartConfig) return null;
   
   // Renderizar un panel de gráfico individual
   const renderPanel = (pList, centerVal, upperLimit, lowerLimit, title, height = 150, panelIndex = 0) => {
@@ -82,7 +83,7 @@ export default function ControlChartVisualizer({ chartConfig }) {
     
     const isVariableLimits = (type === 'P' || type === 'U') && panelIndex === 0;
     
-    const limitsPoints = useMemo(() => {
+    const limitsPoints = (() => {
       if (!isVariableLimits) return null;
       return pList.map((_, idx) => {
         const factor = 1 + 0.15 * Math.sin(idx * 1.5);
@@ -93,7 +94,7 @@ export default function ControlChartVisualizer({ chartConfig }) {
           lcl: Math.max(0, centerVal - diffL * factor)
         };
       });
-    }, [isVariableLimits, pList, upperLimit, lowerLimit, centerVal]);
+    })();
     
     // Generar path para la línea de conexión
     let pathData = '';
