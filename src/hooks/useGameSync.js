@@ -695,7 +695,16 @@ export function useGameSync(isHost, customPin = null) {
       .eq('pin', targetPin)
       .maybeSingle();
 
-    if (error || !game) {
+    if (error) {
+      addLog(`[ERROR] Error al buscar partida en DB: ${error.message}`);
+      alert(`Error al buscar la partida en el servidor.\n\n` +
+            `Table: games\n\n` +
+            `Payload:\n{\n  pin: "${targetPin}"\n}\n\n` +
+            `Error:\n${error.message}`);
+      return;
+    }
+
+    if (!game) {
       addLog(`[ERROR] No se encontró la partida con PIN: ${targetPin}`);
       alert('No se encontró ninguna partida con ese PIN. Verifica el código e intenta de nuevo.');
       return;
@@ -708,11 +717,20 @@ export function useGameSync(isHost, customPin = null) {
     }
 
     // 2. Verificar si el apodo ya existe
-    const { data: existingPlayer } = await supabase.from('players')
+    const { data: existingPlayer, error: existError } = await supabase.from('players')
       .select('*')
       .eq('game_id', game.id)
       .eq('name', name.trim())
       .maybeSingle();
+
+    if (existError) {
+      addLog(`[ERROR] Error al verificar apodo en DB: ${existError.message}`);
+      alert(`Error al verificar apodo en el servidor.\n\n` +
+            `Table: players\n\n` +
+            `Payload:\n{\n  game_id: "${game.id}",\n  name: "${name.trim()}"\n}\n\n` +
+            `Error:\n${existError.message}`);
+      return;
+    }
 
     if (existingPlayer) {
       // Re-conexión del mismo jugador
@@ -745,8 +763,11 @@ export function useGameSync(isHost, customPin = null) {
     const { error: pError } = await supabase.from('players').upsert(playerData);
     
     if (pError) {
-      addLog(`[ERROR] Error al registrar jugador: ${pError.message}`);
-      alert('Error de conexión al unirse al servidor.');
+      addLog(`[ERROR] Error al registrar jugador en DB: ${pError.message}`);
+      alert(`Error al unirse al juego en el servidor.\n\n` +
+            `Table: players\n\n` +
+            `Payload:\n{\n  nickname: "${name.trim()}",\n  avatar: "${selectedAvatar}",\n  game_id: "${game.id}"\n}\n\n` +
+            `Error:\n${pError.message}`);
       return;
     }
 
