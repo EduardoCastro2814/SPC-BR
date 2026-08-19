@@ -26,9 +26,9 @@ create index if not exists games_pin_idx on public.games(pin);
 
 -- 2. CREACIÓN DE LA TABLA DE JUGADORES (players)
 create table if not exists public.players (
-  id text not null, -- ID único del jugador generado en cliente ('p_' + random)
+  id uuid primary key default gen_random_uuid(), -- ID UUID auto-generado por el servidor
   game_id uuid not null references public.games(id) on delete cascade,
-  name text not null,
+  nickname text not null,
   score integer not null default 0,
   streak integer not null default 0,
   is_bot boolean not null default false,
@@ -36,8 +36,7 @@ create table if not exists public.players (
   rank integer not null default 1,
   avatar text not null default 'engineer',
   last_seen timestamp with time zone default now() not null,
-  created_at timestamp with time zone default now() not null,
-  primary key (id, game_id)
+  created_at timestamp with time zone default now() not null
 );
 
 -- Índice para búsquedas rápidas por ID de partida
@@ -47,7 +46,7 @@ create index if not exists players_game_id_idx on public.players(game_id);
 create table if not exists public.answers (
   id uuid primary key default gen_random_uuid(),
   game_id uuid not null references public.games(id) on delete cascade,
-  player_id text not null,
+  player_id uuid not null references public.players(id) on delete cascade, -- Mapeado a la llave UUID del jugador
   question_index integer not null,
   option_index integer not null,
   time_taken numeric not null,
@@ -67,10 +66,6 @@ alter publication supabase_realtime add table public.answers;
 -- ========================================================
 -- CONFIGURACIÓN DE SEGURIDAD (RLS) Y POLÍTICAS PÚBLICAS
 -- ========================================================
--- Activamos Row Level Security (RLS) para seguir las convenciones de Supabase,
--- pero definimos políticas de acceso libre para permitir la comunicación
--- entre múltiples dispositivos (Host e Invitados) de manera pública.
-
 alter table public.games enable row level security;
 alter table public.players enable row level security;
 alter table public.answers enable row level security;
@@ -108,3 +103,6 @@ create policy "Permitir lectura pública de respuestas" on public.answers for se
 create policy "Permitir inserción pública de respuestas" on public.answers for insert with check (true);
 create policy "Permitir actualización pública de respuestas" on public.answers for update using (true);
 create policy "Permitir borrado público de respuestas" on public.answers for delete using (true);
+
+-- Notificar recarga de schema cache
+notify pgrst, 'reload schema';

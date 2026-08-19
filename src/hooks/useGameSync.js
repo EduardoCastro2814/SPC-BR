@@ -15,11 +15,12 @@ export function useGameSync(isHost, customPin = null) {
   const [answers, setAnswers] = useState({}); // { playerId: { optionIndex, isCorrect, points, time } }
   
   // --- ESTADO DE JUGADOR CLIENTE ---
-  const [playerId] = useState(() => {
-    let id = localStorage.getItem('spc_player_id');
-    if (!id) {
-      id = 'p_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('spc_player_id', id);
+  const [playerId, setPlayerId] = useState(() => {
+    const id = localStorage.getItem('spc_player_id') || '';
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (id && !uuidRegex.test(id)) {
+      localStorage.removeItem('spc_player_id');
+      return '';
     }
     return id;
   });
@@ -172,7 +173,12 @@ export function useGameSync(isHost, customPin = null) {
         const savedPlayerGameId = sessionStorage.getItem('spc_player_game_id');
         const savedPlayerName = sessionStorage.getItem('spc_player_name');
         
-        if (savedPlayerGameId && savedPlayerName) {
+        if (savedPlayerGameId && savedPlayerName && playerId) {
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (!uuidRegex.test(playerId)) {
+            console.warn('[useGameSync] playerId guardado no es un UUID válido:', playerId);
+            return;
+          }
           addLog(`[PLAYER] Intentando reanudar conexión a partida: ${savedPlayerGameId}`);
           const { data: game, error } = await supabase.from('games').select('*').eq('id', savedPlayerGameId).maybeSingle();
           if (game && !error) {
@@ -184,7 +190,7 @@ export function useGameSync(isHost, customPin = null) {
               setGameState(game.game_state);
               setCurrentQuestionIndex(game.current_question_index);
               setQuestionStartedAt(game.question_started_at);
-              setPlayerName(player.name);
+              setPlayerName(player.nickname);
               setJoined(true);
               setMyScore(player.score);
               setMyStreak(player.streak);
@@ -204,7 +210,7 @@ export function useGameSync(isHost, customPin = null) {
                 setPointsEarnedThisRound(myAns.points);
               }
 
-              addLog(`[PLAYER] Conexión reanudada como ${player.name} en el PIN ${game.pin}`);
+              addLog(`[PLAYER] Conexión reanudada como ${player.nickname} en el PIN ${game.pin}`);
               subscribePlayerEvents(game.id);
             }
           }
@@ -229,7 +235,7 @@ export function useGameSync(isHost, customPin = null) {
         filter: `game_id=eq.${gId}`
       }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          addLog(`[HOST] Jugador conectado: ${payload.new.name}`);
+          addLog(`[HOST] Jugador conectado: ${payload.new.nickname}`);
           setPlayers((prev) => {
             if (prev.some((p) => p.id === payload.new.id)) return prev;
             return [...prev, payload.new];
@@ -462,11 +468,9 @@ export function useGameSync(isHost, customPin = null) {
   const addBotPlayer = useCallback(async (botName) => {
     if (!isHost || !gameIdRef.current) return;
     
-    const botId = 'bot_' + Math.random().toString(36).substr(2, 9);
     const newBot = {
-      id: botId,
       game_id: gameIdRef.current,
-      name: botName + ' (Bot)',
+      nickname: botName + ' (Bot)',
       score: 0,
       streak: 0,
       is_bot: true,
@@ -475,7 +479,7 @@ export function useGameSync(isHost, customPin = null) {
       avatar: 'robot'
     };
 
-    addLog(`[HOST] Insertando Bot en la base de datos: ${newBot.name}`);
+    addLog(`[HOST] Insertando Bot en la base de datos: ${newBot.nickname}`);
     const { error } = await supabase.from('players').insert(newBot);
     
     if (error) {
@@ -727,7 +731,7 @@ export function useGameSync(isHost, customPin = null) {
     const { data: existingPlayer, error: existError } = await supabase.from('players')
       .select('*')
       .eq('game_id', game.id)
-      .eq('name', name.trim())
+      .eq('nickname', name.trim())
       .maybeSingle();
 
     if (existError) {
@@ -736,7 +740,7 @@ export function useGameSync(isHost, customPin = null) {
       setJoinError('Error de red al verificar apodo.');
       alert(`Error al verificar apodo en el servidor.\n\n` +
             `Table: players\n\n` +
-            `Payload:\n{\n  game_id: "${game.id}",\n  name: "${name.trim()}"\n}\n\n` +
+            `Payload:\n{\n  game_id: "${game.id}",\n  nickname: "${name.trim()}"\n}\n\n` +
             `Error:\n${existError.message}`);
       return;
     }
@@ -757,21 +761,18 @@ export function useGameSync(isHost, customPin = null) {
     const selectedAvatar = sessionStorage.getItem(`avatar_${name.trim().toLowerCase()}`) || 'engineer';
 
     const playerData = {
-      id: playerId,
       game_id: game.id,
-      name: name.trim(),
-      score: 0,
-      streak: 0,
-      is_bot: false,
-      last_correct: null,
-      rank: 1,
-      avatar: selectedAvatar,
-      last_seen: new Date().toISOString()
+      nickname: name.trim(),
+      avatar: selectedAvatar
     };
 
     addLog(`[PLAYER] Registrando jugador en la base de datos: ${name}`);
     console.log("[GameSync] Player creation - Registrando jugador en Supabase:", playerData);
-    const { error: pError } = await supabase.from('players').upsert(playerData);
+    const { data: insertedPlayer, error: pError } = await supabase
+      .from('players')
+      .insert(playerData)
+      .select()
+      .single();
     
     if (pError) {
       addLog(`[ERROR] Error al registrar jugador en DB: ${pError.message}`);
@@ -793,6 +794,8 @@ export function useGameSync(isHost, customPin = null) {
     setGameState(game.game_state);
     setCurrentQuestionIndex(game.current_question_index);
     setQuestionStartedAt(game.question_started_at);
+    setPlayerId(insertedPlayer.id);
+    localStorage.setItem('spc_player_id', insertedPlayer.id);
     setJoined(true);
 
     // Guardar sesión en Storage para soportar refrescos de página

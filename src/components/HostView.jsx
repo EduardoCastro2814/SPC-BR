@@ -42,7 +42,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
 
   const handleAddBot = () => {
     const unusedNames = botNames.filter(
-      (name) => !players.some((p) => p.name.includes(name))
+      (name) => !players.some((p) => p.nickname && p.nickname.includes(name))
     );
     const botName = unusedNames.length > 0 
       ? unusedNames[Math.floor(Math.random() * unusedNames.length)]
@@ -177,7 +177,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
               {players.map((player) => {
-                const av = getPlayerAvatar(player.name, player.isBot);
+                const av = getPlayerAvatar(player.nickname, player.isBot);
                 return (
                   <div
                     key={player.id}
@@ -185,7 +185,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
                   >
                     <AvatarSVG type={av} size={44} />
                     <span className="font-black text-xs text-slate-800 truncate w-full block">
-                      {player.name}
+                      {player.nickname}
                     </span>
                     {player.isBot && (
                       <span className="text-[8px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-mono uppercase font-black tracking-wide">
@@ -512,7 +512,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
                 { bg: 'bg-orange-100 border-orange-300 text-orange-600', badge: '🥉 3º' }
               ];
               const medal = medals[idx] || { bg: 'bg-white border-blue-50 text-slate-600', badge: `${idx + 1}º` };
-              const av = getPlayerAvatar(player.name, player.isBot);
+              const av = getPlayerAvatar(player.nickname, player.isBot);
 
               return (
                 <div
@@ -525,7 +525,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
                       {medal.badge}
                     </span>
                     <AvatarSVG type={av} size={36} />
-                    <span className="font-black text-base text-slate-800">{player.name}</span>
+                    <span className="font-black text-base text-slate-800">{player.nickname}</span>
                     {player.streak >= 3 && (
                       <span className="text-[9px] font-mono bg-yellow-100 text-amber-500 px-2 py-0.5 rounded-full font-bold animate-bounce flex items-center gap-1 border border-yellow-200">
                         <Flame className="w-3 h-3 fill-current" />
@@ -614,10 +614,10 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           {second && (
             <div className="flex flex-col items-center w-28 animate-podiumLeft">
               <div className="mb-2">
-                <AvatarSVG type={getPlayerAvatar(second.name, second.isBot)} size={48} />
+                <AvatarSVG type={getPlayerAvatar(second.nickname, second.isBot)} size={48} />
               </div>
               <div className="text-center font-bold text-xs truncate w-24 mb-1 text-slate-700">
-                {second.name}
+                {second.nickname}
               </div>
               <div className="text-[10px] font-mono font-black text-slate-500 mb-2">
                 {second.score} XP
@@ -633,10 +633,10 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
             <div className="flex flex-col items-center w-36 animate-podiumCenter">
               <Trophy className="w-10 h-10 text-yellow-400 animate-bounce mb-1" />
               <div className="mb-2">
-                <AvatarSVG type={getPlayerAvatar(first.name, first.isBot)} size={60} />
+                <AvatarSVG type={getPlayerAvatar(first.nickname, first.isBot)} size={60} />
               </div>
               <div className="text-center font-black text-sm truncate w-32 mb-1 text-yellow-600">
-                {first.name}
+                {first.nickname}
               </div>
               <div className="text-xs font-mono font-black text-yellow-500 mb-2">
                 {first.score} XP
@@ -651,10 +651,10 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           {third && (
             <div className="flex flex-col items-center w-24 animate-podiumRight">
               <div className="mb-2">
-                <AvatarSVG type={getPlayerAvatar(third.name, third.isBot)} size={40} />
+                <AvatarSVG type={getPlayerAvatar(third.nickname, third.isBot)} size={40} />
               </div>
               <div className="text-center font-bold text-xs truncate w-20 mb-1 text-orange-600">
-                {third.name}
+                {third.nickname}
               </div>
               <div className="text-[10px] font-mono font-black text-orange-500 mb-2">
                 {third.score} XP
@@ -673,7 +673,7 @@ export default function HostView({ sync, isMuted, onToggleMute }) {
           </div>
           {sorted.slice(3).map((p, idx) => (
             <div key={p.id} className="flex justify-between items-center text-xs font-mono py-1 border-b border-blue-50 last:border-b-0 px-2 text-slate-650">
-              <span className="font-bold">#{idx + 4} {p.name}</span>
+              <span className="font-bold">#{idx + 4} {p.nickname}</span>
               <span className="font-black text-blue-500">{p.score} XP</span>
             </div>
           ))}
