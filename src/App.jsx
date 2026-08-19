@@ -3,8 +3,8 @@ import DashboardView from './components/DashboardView';
 import HostView from './components/HostView';
 import PlayerView from './components/PlayerView';
 import { useGameSync } from './hooks/useGameSync';
-import { Trophy, Award, Users, BarChart3, ArrowLeft } from 'lucide-react';
-import { isSupabaseConfigured, clearSupabaseConfig } from './services/supabase';
+import { Trophy, Award, Users, BarChart3, ArrowLeft, RefreshCw } from 'lucide-react';
+import { supabase, isSupabaseConfigured, clearSupabaseConfig } from './services/supabase';
 import SupabaseConfigView from './components/SupabaseConfigView';
 
 // --- CUTE CARTOON SVG ILLUSTRATIONS FOR CARDS ---
@@ -64,6 +64,46 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [rankings, setRankings] = useState([]);
 
+  // Validación de conexión al inicio
+  const [startupConnStatus, setStartupConnStatus] = useState('checking'); // checking, success, failed, ready
+  const [startupError, setStartupError] = useState('');
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.from('games').select('count', { count: 'exact', head: true });
+        if (error) {
+          setStartupConnStatus('failed');
+          
+          if (error.message.includes('Failed to fetch') || error.code === 'PGRST100' || error.message.includes('TypeError')) {
+            setStartupError('Error de red o CORS. Asegúrate de que el URL de Supabase sea correcto y que no haya ad-blockers bloqueando la conexión.');
+          } else if (error.message.includes('relation "public.games" does not exist') || error.code === '42P01') {
+            setStartupError('Las tablas requeridas no existen en la base de datos de Supabase. Debes ejecutar el archivo schema.sql en tu editor de SQL.');
+          } else if (error.message.includes('Invalid API key') || error.message.includes('JWT') || error.code === 'PGRST301') {
+            setStartupError('La clave Anon API Key de Supabase es inválida o ha expirado.');
+          } else if (error.code === '42501' || error.message.includes('permission denied')) {
+            setStartupError('Acceso bloqueado por RLS (Row Level Security). Aplica las políticas de lectura/escritura públicas del archivo schema.sql.');
+          } else {
+            setStartupError(`${error.message} [Código: ${error.code || 'Desconocido'}]`);
+          }
+        } else {
+          setStartupConnStatus('success');
+          // Breve retraso para mostrar el mensaje de éxito y luego ir al menú
+          setTimeout(() => {
+            setStartupConnStatus('ready');
+          }, 1200);
+        }
+      } catch (err) {
+        setStartupConnStatus('failed');
+        setStartupError(err.message);
+      }
+    };
+    
+    checkConnection();
+  }, []);
+
   // Inicialización de sincronizadores
   const standaloneHostSync = useGameSync(true);
   const standalonePlayerSync = useGameSync(false);
@@ -114,6 +154,62 @@ export default function App() {
 
   if (!isSupabaseConfigured()) {
     return <SupabaseConfigView />;
+  }
+
+  // Comprobar estado de carga de la conexión inicial
+  if (startupConnStatus === 'checking') {
+    return (
+      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
+        <div className="w-full max-w-md bg-white border-2 border-blue-800 p-8 rounded-3xl shadow-xl text-center space-y-4">
+          <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mx-auto" />
+          <h2 className="text-lg font-black font-mono text-blue-600 uppercase">Verificando Servidor</h2>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Conectando a Supabase...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (startupConnStatus === 'success') {
+    return (
+      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
+        <div className="w-full max-w-md bg-white border-2 border-emerald-500 p-8 rounded-3xl shadow-xl text-center space-y-4 animate-float">
+          <div className="text-5xl animate-bounce">✅</div>
+          <h2 className="text-lg font-black font-mono text-green-600 uppercase">Conectado a Supabase</h2>
+          <p className="text-xs text-slate-450 font-mono uppercase tracking-wider font-bold">¡Bienvenido a la Arena!</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (startupConnStatus === 'failed') {
+    return (
+      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
+        <div className="w-full max-w-md bg-white border-2 border-rose-500 p-8 rounded-3xl shadow-xl text-center space-y-6">
+          <div className="text-rose-500 text-5xl">❌</div>
+          <h2 className="text-xl font-black font-mono text-red-500 uppercase">Error de conexión</h2>
+          
+          <div className="text-xs font-mono bg-red-50 border border-red-150 p-4 rounded-2xl text-red-800 leading-relaxed text-left break-all select-text font-bold">
+            <span className="block font-black text-[10px] uppercase text-red-500 mb-1">Razón del Error:</span>
+            {startupError}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="flex-grow py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono font-black uppercase text-xs rounded-2xl border-2 border-slate-200 active:scale-95 transition-all"
+            >
+              Reintentar
+            </button>
+            <button
+              onClick={() => clearSupabaseConfig()}
+              className="flex-grow py-3 bg-red-500 hover:bg-red-600 text-white font-mono font-black uppercase text-xs rounded-2xl border-b-4 border-red-700 active:scale-95 transition-all"
+            >
+              Configurar Servidor
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (viewMode === 'SANDBOX') {
