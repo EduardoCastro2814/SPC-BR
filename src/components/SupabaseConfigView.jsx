@@ -76,6 +76,44 @@ create table if not exists public.answers (
 
 create index if not exists answers_game_question_idx on public.answers(game_id, question_index);
 
+-- ==========================================
+-- ACTUALIZACIÓN EN CASO DE TABLAS EXISTENTES
+-- (Evita errores de columna faltante en caché)
+-- ==========================================
+alter table public.games add column if not exists pin text;
+alter table public.games add column if not exists game_state text default 'LOBBY';
+alter table public.games add column if not exists current_question_index integer default 0;
+alter table public.games add column if not exists question_started_at timestamp with time zone;
+alter table public.games add column if not exists created_at timestamp with time zone default now();
+alter table public.games add column if not exists updated_at timestamp with time zone default now();
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint 
+    where conname = 'games_pin_key' or conname = 'games_pin_unique'
+  ) then
+    alter table public.games add constraint games_pin_key unique (pin);
+  end if;
+end $$;
+
+alter table public.players add column if not exists name text;
+alter table public.players add column if not exists score integer default 0;
+alter table public.players add column if not exists streak integer default 0;
+alter table public.players add column if not exists is_bot boolean default false;
+alter table public.players add column if not exists last_correct boolean;
+alter table public.players add column if not exists rank integer default 1;
+alter table public.players add column if not exists avatar text default 'engineer';
+alter table public.players add column if not exists last_seen timestamp with time zone default now();
+alter table public.players add column if not exists created_at timestamp with time zone default now();
+
+alter table public.answers add column if not exists question_index integer;
+alter table public.answers add column if not exists option_index integer;
+alter table public.answers add column if not exists time_taken numeric;
+alter table public.answers add column if not exists is_correct boolean;
+alter table public.answers add column if not exists points integer;
+alter table public.answers add column if not exists created_at timestamp with time zone default now();
+
 -- Activar canal Realtime para las tres tablas en Supabase
 alter publication supabase_realtime add table public.games;
 alter publication supabase_realtime add table public.players;
@@ -121,7 +159,10 @@ create policy "Permitir borrado público de jugadores" on public.players for del
 create policy "Permitir lectura pública de respuestas" on public.answers for select using (true);
 create policy "Permitir inserción pública de respuestas" on public.answers for insert with check (true);
 create policy "Permitir actualización pública de respuestas" on public.answers for update using (true);
-create policy "Permitir borrado público de respuestas" on public.answers for delete using (true);`;
+create policy "Permitir borrado público de respuestas" on public.answers for delete using (true);
+
+-- Recargar caché de esquemas de PostgREST
+notify pgrst, 'reload schema';`;
 
   const handleCopySql = () => {
     navigator.clipboard.writeText(sqlCode);
