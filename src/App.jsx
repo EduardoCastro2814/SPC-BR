@@ -3,7 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-d
 import HostView from './components/HostView';
 import PlayerView from './components/PlayerView';
 import { useGameSync } from './hooks/useGameSync';
-import { Trophy, Award, Users, BarChart3, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Trophy, Award, Users, BarChart3, ArrowLeft } from 'lucide-react';
 import { supabase } from './services/supabase';
 
 // --- CUTE CARTOON SVG ILLUSTRATIONS FOR CARDS ---
@@ -33,7 +33,7 @@ function SmartphoneIllustration() {
   );
 }
 
-// --- SUB-COMPONENTE PARA ASEGURAR QUE SE LANZA LA SESIÓN DEL HOST AL ACCEDER DIRECTO ---
+// --- SUB-COMPONENTE PARA INSTRUCTOR ---
 function InstructorRoute({ sync, isMuted, onToggleMute }) {
   const navigate = useNavigate();
 
@@ -65,10 +65,10 @@ function InstructorRoute({ sync, isMuted, onToggleMute }) {
   );
 }
 
-// --- VISTA GENERAL DEL MENÚ PRINCIPAL PARA COMPUTADORAS DE ESCRITORIO ---
-function MainMenuView({ onLanzarHost, onUnirse }) {
+// --- VISTA DEL MENÚ PRINCIPAL ---
+function MainMenuView({ connStatus, onLanzarHost, onUnirse }) {
   return (
-    <div className="min-h-screen bg-blue-50/20 text-slate-800 font-sans flex flex-col justify-between relative overflow-hidden">
+    <div className="min-h-screen bg-blue-50/20 text-slate-800 font-sans flex flex-col justify-between relative overflow-hidden w-full">
       {/* Retícula lúdica de fondo */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,174,239,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,174,239,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
       
@@ -100,7 +100,7 @@ function MainMenuView({ onLanzarHost, onUnirse }) {
         </p>
       </header>
 
-      {/* Grid de Modos de Juego (2 columnas en escritorio) */}
+      {/* Grid de Modos de Juego (2 columnas) */}
       <main className="relative z-10 max-w-[1000px] mx-auto w-full px-6 py-6 flex-1 flex items-center justify-center">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
           
@@ -163,7 +163,24 @@ function MainMenuView({ onLanzarHost, onUnirse }) {
             © SPC Battle Arena
           </div>
           <div className="pt-2 text-[10px] text-slate-400 flex justify-center items-center gap-1.5">
-            <span className="text-emerald-500">●</span> Servidor Activo
+            {connStatus === 'checking' && (
+              <>
+                <span className="text-yellow-500 animate-pulse">●</span>
+                <span>Conectando al Servidor...</span>
+              </>
+            )}
+            {connStatus === 'ready' && (
+              <>
+                <span className="text-emerald-500 font-black">●</span>
+                <span>Servidor Activo</span>
+              </>
+            )}
+            {connStatus === 'failed' && (
+              <>
+                <span className="text-rose-500 font-black">●</span>
+                <span>Servidor Inactivo</span>
+              </>
+            )}
           </div>
         </div>
       </footer>
@@ -172,7 +189,7 @@ function MainMenuView({ onLanzarHost, onUnirse }) {
 }
 
 // --- CONTENIDO COMPLETO DE LA APP ENRUTADA ---
-function AppContent() {
+function AppContent({ startupConnStatus, setStartupConnStatus }) {
   const navigate = useNavigate();
   const [isMuted, setIsMuted] = useState(false);
 
@@ -180,7 +197,7 @@ function AppContent() {
   const standaloneHostSync = useGameSync(true);
   const standalonePlayerSync = useGameSync(false);
 
-  // Registrar automáticamente los récords del ganador en el almacenamiento local al finalizar la partida
+  // Registrar récords localmente al terminar partida
   useEffect(() => {
     if (standaloneHostSync.gameState === 'PODIUM' && standaloneHostSync.players.length > 0) {
       const winner = [...standaloneHostSync.players].sort((a, b) => b.score - a.score)[0];
@@ -202,38 +219,76 @@ function AppContent() {
     }
   }, [standaloneHostSync.gameState, standaloneHostSync.players]);
 
+  // Verificar conexión en segundo plano
+  useEffect(() => {
+    console.log('[Supabase] Inicializando conexión en segundo plano...');
+    const checkConnection = async () => {
+      if (!supabase) {
+        console.error('[Supabase] Error: Cliente de base de datos no está inicializado.');
+        setStartupConnStatus('failed');
+        return;
+      }
+      try {
+        const { error } = await supabase.from('games').select('count', { count: 'exact', head: true });
+        if (error) {
+          console.error('[Supabase] Error de conexión de base de datos:', error.message);
+          setStartupConnStatus('failed');
+        } else {
+          console.log('[Supabase] Conexión establecida y verificada correctamente.');
+          setStartupConnStatus('ready');
+        }
+      } catch (err) {
+        console.error('[Supabase] Excepción en la validación de conexión:', err.message);
+        setStartupConnStatus('failed');
+      }
+    };
+    
+    checkConnection();
+  }, [setStartupConnStatus]);
+
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
   };
 
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-
   return (
-    <Routes>
-      {/* Menú Principal o redirección automática a consola en móviles */}
-      <Route 
-        path="/" 
-        element={
-          isMobile ? (
-            <Navigate to="/player" replace />
-          ) : (
+    <div className="min-h-screen flex flex-col justify-between w-full">
+      {/* Banner global de advertencia de conexión */}
+      {startupConnStatus === 'failed' && (
+        <div className="bg-red-600 text-white font-mono font-bold text-xs py-2.5 px-4 flex justify-between items-center z-50 shadow-md relative animate-fadeIn w-full">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">⚠️</span>
+            <span>Error de conexión al servidor. Revisa tu internet o ad-blockers.</span>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white font-black uppercase text-[10px] rounded-lg transition-all active:scale-95 border border-white/30 font-mono"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      <Routes>
+        {/* Menú Principal */}
+        <Route 
+          path="/" 
+          element={
             <MainMenuView 
+              connStatus={startupConnStatus}
               onLanzarHost={() => {
                 standaloneHostSync.startLobby();
                 navigate('/instructor');
               }}
               onUnirse={() => navigate('/player')}
             />
-          )
-        } 
-      />
+          } 
+        />
 
-      {/* Ruta para el Jugador (Consola Móvil) */}
-      <Route 
-        path="/player" 
-        element={
-          <div className="min-h-screen bg-blue-50/20 p-4 flex flex-col justify-center items-center font-sans">
-            {!isMobile && (
+        {/* Ruta de Jugador */}
+        <Route 
+          path="/player" 
+          element={
+            <div className="min-h-screen bg-blue-50/20 p-4 flex flex-col justify-center items-center font-sans w-full">
               <div className="w-full max-w-sm mb-4">
                 <button
                   onClick={() => navigate('/')}
@@ -243,83 +298,40 @@ function AppContent() {
                   Menú Principal
                 </button>
               </div>
-            )}
-            <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col">
-              <PlayerView sync={standalonePlayerSync} />
+              <div className="w-full max-w-sm bg-white border-2 border-blue-100 rounded-3xl overflow-hidden shadow-xl flex flex-col">
+                <PlayerView sync={standalonePlayerSync} />
+              </div>
             </div>
-          </div>
-        } 
-      />
+          } 
+        />
 
-      {/* Ruta para el Instructor (Host de partida) */}
-      <Route 
-        path="/instructor" 
-        element={<InstructorRoute sync={standaloneHostSync} isMuted={isMuted} onToggleMute={toggleMute} />} 
-      />
+        {/* Ruta del Instructor */}
+        <Route 
+          path="/instructor" 
+          element={<InstructorRoute sync={standaloneHostSync} isMuted={isMuted} onToggleMute={toggleMute} />} 
+        />
 
-      {/* Redirección por defecto */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   );
 }
 
-// --- ELEMENTO RAÍZ QUE CONECTA Y VALIDA EN SILENCIO ---
+// --- COMPONENTE RAÍZ ---
 export default function App() {
   const [startupConnStatus, setStartupConnStatus] = useState('checking'); // checking, failed, ready
 
   useEffect(() => {
-    const checkConnection = async () => {
-      if (!supabase) {
-        setStartupConnStatus('failed');
-        return;
-      }
-      try {
-        const { error } = await supabase.from('games').select('count', { count: 'exact', head: true });
-        if (error) {
-          setStartupConnStatus('failed');
-        } else {
-          setStartupConnStatus('ready');
-        }
-      } catch {
-        setStartupConnStatus('failed');
-      }
-    };
-    
-    checkConnection();
+    console.log('[App] Aplicación SPC Battle Arena iniciada.');
   }, []);
-
-  if (startupConnStatus === 'checking') {
-    return (
-      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
-        <div className="w-full max-w-md bg-white border-2 border-blue-800 p-8 rounded-3xl shadow-xl text-center space-y-4">
-          <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mx-auto" />
-          <h2 className="text-lg font-black font-mono text-blue-600 uppercase">Cargando juego</h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Estableciendo conexión...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (startupConnStatus === 'failed') {
-    return (
-      <div className="min-h-screen bg-blue-50/20 p-6 flex flex-col items-center justify-center font-sans">
-        <div className="w-full max-w-md bg-white border-2 border-rose-500 p-8 rounded-3xl shadow-xl text-center space-y-6">
-          <div className="text-rose-500 text-5xl">❌</div>
-          <h2 className="text-xl font-black font-mono text-red-500 uppercase">Error de conexión al servidor</h2>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full py-4 bg-red-500 hover:bg-red-650 text-white font-mono font-black uppercase text-xs rounded-2xl border-b-4 border-red-700 active:scale-95 transition-all shadow-md"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <HashRouter>
-      <AppContent />
+      <AppContent 
+        startupConnStatus={startupConnStatus} 
+        setStartupConnStatus={setStartupConnStatus} 
+      />
     </HashRouter>
   );
 }
