@@ -341,7 +341,12 @@ export default function PlayerView({ sync }) {
   if (gameState === 'LOBBY') {
     return wrap(
       <div className="flex flex-col justify-between items-center min-h-500 bg-white text-slate-800 p-6 font-sans">
-        <div className="text-center mt-8 space-y-4">
+        <div className="text-center mt-8 space-y-4 w-full">
+          <div className="mb-2">
+            <span className="text-[10px] bg-yellow-100 border border-yellow-300 text-amber-650 px-3 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+              Esperando inicio de partida...
+            </span>
+          </div>
           <div className="flex justify-center">
             <AvatarSVG type={selectedAvatar} size={96} />
           </div>
@@ -358,17 +363,17 @@ export default function PlayerView({ sync }) {
           <div className="text-xs text-slate-500 uppercase tracking-widest font-mono font-bold">
             Tu Estado
           </div>
-          <div className="text-base font-bold text-amber-500 animate-pulse font-mono uppercase">
-            Esperando al Instructor...
+          <div className="text-sm font-bold text-amber-600 animate-pulse font-mono uppercase leading-relaxed px-2">
+            Esperando que el instructor inicie la partida
           </div>
           <div className="flex justify-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-bounce"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce"></span>
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0.3s' }}></span>
           </div>
         </div>
       </div>
-  );
+    );
   }
 
   // 3. PANTALLA DE INTRO DE PREGUNTA ("PREPÁRATE")
@@ -376,6 +381,11 @@ export default function PlayerView({ sync }) {
     return wrap(
       <div className="flex flex-col justify-center items-center min-h-500 bg-blue-50 text-slate-800 p-6 font-sans text-center">
         <div className="animate-fadeIn space-y-4">
+          <div className="mb-2">
+            <span className="text-[10px] bg-emerald-100 border border-emerald-250 text-emerald-600 px-3 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+              Partida iniciada
+            </span>
+          </div>
           <div className="flex justify-center mb-2">
             <AvatarSVG type={selectedAvatar} size={80} />
           </div>
@@ -419,7 +429,12 @@ export default function PlayerView({ sync }) {
     }
 
     return wrap(
-      <div className="flex flex-col justify-between min-h-500 bg-blue-50/30 p-4 font-sans text-slate-800">
+      <div className="flex flex-col justify-between min-h-500 bg-blue-50/30 p-4 font-sans text-slate-800 w-full">
+        <div className="text-center mb-2">
+          <span className="text-[9px] bg-blue-100 border border-blue-200 text-blue-600 px-3 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+            Pregunta recibida
+          </span>
+        </div>
         {/* Cabecera del jugador */}
         <div className="flex justify-between items-center bg-white border-2 border-blue-50 px-4 py-2 rounded-2xl shadow-sm">
           <div className="flex items-center gap-2">
@@ -553,7 +568,12 @@ export default function PlayerView({ sync }) {
       <div className="flex flex-col justify-between items-center min-h-500 bg-white text-slate-800 p-6 font-sans text-center relative overflow-hidden">
         {isWinner && <ConfettiEffect />}
         
-        <div className="text-center mt-8 space-y-4">
+        <div className="text-center mt-8 space-y-4 w-full">
+          <div className="mb-2">
+            <span className="text-[10px] bg-rose-100 border border-rose-250 text-rose-600 px-3 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+              Fin del juego
+            </span>
+          </div>
           <div className="flex justify-center">
             <AvatarSVG type={selectedAvatar} size={96} />
           </div>

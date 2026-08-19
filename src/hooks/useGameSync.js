@@ -56,6 +56,18 @@ export function useGameSync(isHost, customPin = null) {
     stateRef.current = { gameState, players, currentQuestionIndex, answers, pin };
   }, [gameState, players, currentQuestionIndex, answers, pin]);
 
+  // Loguear estado actual del juego
+  useEffect(() => {
+    if (joined) {
+      console.log("[GameSync] Estado de la partida actual:", gameState);
+      console.log("[GameSync] Índice de la pregunta actual:", currentQuestionIndex);
+      const currentQuestion = questionsData[currentQuestionIndex];
+      if (currentQuestion) {
+        console.log("[GameSync] Payload de la pregunta actual:", currentQuestion);
+      }
+    }
+  }, [joined, gameState, currentQuestionIndex]);
+
   // Limpiar timers al desmontar
   useEffect(() => {
     return () => {
@@ -181,6 +193,7 @@ export function useGameSync(isHost, customPin = null) {
           }
           addLog(`[PLAYER] Intentando reanudar conexión a partida: ${savedPlayerGameId}`);
           const { data: game, error } = await supabase.from('games').select('*').eq('id', savedPlayerGameId).maybeSingle();
+          console.log("[GameSync] Game record fetched from Supabase (resumeSession):", game);
           if (game && !error) {
             // Verificar si el jugador existe en la base de datos
             const { data: player } = await supabase.from('players').select('*').eq('id', playerId).eq('game_id', game.id).maybeSingle();
@@ -312,9 +325,25 @@ export function useGameSync(isHost, customPin = null) {
         table: 'games',
         filter: `id=eq.${gId}`
       }, (payload) => {
+        console.log("[GameSync] Evento Realtime recibido (partida):", payload);
         const updatedGame = payload.new;
         addLog(`[PLAYER] Cambio de estado de la partida: ${updatedGame.game_state}`);
         
+        console.log("[GameSync] Estado de partida actual recibido:", updatedGame.game_state);
+        console.log("[GameSync] Índice de pregunta actual recibido:", updatedGame.current_question_index);
+
+        // Detectar inicio de juego
+        if (stateRef.current.gameState === 'LOBBY' && updatedGame.game_state !== 'LOBBY') {
+          console.log("[GameSync] Evento: ¡Partida iniciada por el instructor!");
+        }
+
+        // Detectar cambio de pregunta
+        if (stateRef.current.currentQuestionIndex !== updatedGame.current_question_index) {
+          console.log("[GameSync] Evento: Pregunta cambiada a:", updatedGame.current_question_index);
+          const currentQuestion = questionsData[updatedGame.current_question_index];
+          console.log("[GameSync] Payload de la nueva pregunta recibido:", currentQuestion);
+        }
+
         setGameState(updatedGame.game_state);
         setCurrentQuestionIndex(updatedGame.current_question_index);
         setQuestionStartedAt(updatedGame.question_started_at);
@@ -328,6 +357,7 @@ export function useGameSync(isHost, customPin = null) {
       })
       .subscribe((status) => {
         addLog(`[PLAYER] Canal de partida: ${status}`);
+        console.log("[GameSync] Canal de partida status:", status);
       });
 
     // Escuchar cambios en el ranking y puntaje general de la partida
@@ -337,7 +367,8 @@ export function useGameSync(isHost, customPin = null) {
         schema: 'public',
         table: 'players',
         filter: `game_id=eq.${gId}`
-      }, () => {
+      }, (payload) => {
+        console.log("[GameSync] Evento Realtime recibido (jugadores):", payload);
         // Cargar todo el listado para sincronizar posiciones
         supabase.from('players').select('*').eq('game_id', gId)
           .then(({ data }) => {
@@ -355,6 +386,7 @@ export function useGameSync(isHost, customPin = null) {
       })
       .subscribe((status) => {
         addLog(`[PLAYER] Canal de competidores: ${status}`);
+        console.log("[GameSync] Canal de competidores status:", status);
       });
 
     return () => {
@@ -700,6 +732,8 @@ export function useGameSync(isHost, customPin = null) {
       .select('*')
       .eq('pin', targetPin)
       .maybeSingle();
+
+    console.log("[GameSync] Game record fetched from Supabase (joinGame):", game);
 
     if (error) {
       addLog(`[ERROR] Error al buscar partida en DB: ${error.message}`);
